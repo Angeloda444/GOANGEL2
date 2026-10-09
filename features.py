@@ -321,7 +321,7 @@ _PB_BAYESIAN_MODELS: Tuple[str, ...] = (
     "HierarchicalBayesianGoalModel",
 )
 
-_WARMUP_RATIO: float = 0.10
+_WARMUP_RATIO: float = 0.0
 
 _MIN_CLASSES_FOR_TRAINING: int = 3
 _MIN_TEST_SAMPLES: int = 30
@@ -1904,14 +1904,17 @@ def create_features_with_context(
     if n_total == 0:
         return empty_return
 
-    warmup_count = max(1, int(n_total * _WARMUP_RATIO))
-    warmup_count = min(warmup_count, max(0, n_total - 1))
+    if _WARMUP_RATIO <= 0.0:
+        warmup_count = 0
+    else:
+        warmup_count = max(1, int(n_total * _WARMUP_RATIO))
+        warmup_count = min(warmup_count, max(0, n_total - 1))
 
     if warmup_count > 0:
         df_warmup = df_sorted.iloc[:warmup_count]
         dgf, dpts, _ = compute_league_defaults(df_warmup)
     else:
-        dgf, dpts = _NAN, _NAN
+        dgf, dpts, _ = compute_league_defaults(df_sorted)
 
     tracker = TeamHistoryTracker(
         default_gf=dgf, default_ga=dgf, default_pts=dpts,
@@ -2000,6 +2003,10 @@ def create_features_with_context(
             comp_code = _normalize_competition_code(getattr(row, "competition_code", None))
             _record_from_row(row, home, away, gh_i, ga_i, match_date, comp_code)
             elo_system.update(home, away, gh_i, ga_i, comp_code)
+
+    if warmup_count == 0:
+        logger.info("Warmup désactivé : 100%% des matchs contribuent à l'entraînement")
+        stage_print(f"🔥 Warmup désactivé : {n_total} matchs utilisés pour entraînement")
 
     feature_rows: List[np.ndarray] = []
     labels: List[int] = []

@@ -1,40 +1,32 @@
-name: GOANGEL Sequential Training
+name: GOANGEL Sequential
 
 on:
   workflow_dispatch:
     inputs:
       seasons_lookback:
-        description: "Nombre de saisons historiques"
-        required: false
         default: "3"
+        type: string
       enrich_xg:
-        description: "Enrichir avec xG et statistiques"
-        required: false
         default: "true"
+        type: string
       workers_per_key:
-        description: "Workers par cle API"
-        required: false
         default: "4"
+        type: string
       max_workers:
-        description: "Nombre maximal de workers"
-        required: false
         default: "256"
+        type: string
       rate_limit_per_minute:
-        description: "Requetes par minute par cle"
-        required: false
         default: "20"
+        type: string
       max_attempts_per_model:
-        description: "Tentatives maximales par modele"
-        required: false
         default: "15"
-      reset_progress:
-        description: "Reinitialiser tout le progres"
-        required: false
+        type: string
+      force_stage:
+        default: ""
+        type: string
+      is_retry:
         default: "false"
-      is_rechain:
-        description: "Usage interne - chainage"
-        required: false
-        default: "false"
+        type: string
 
 permissions:
   contents: write
@@ -44,216 +36,284 @@ concurrency:
   group: goangel-sequential
   cancel-in-progress: false
 
-env:
-  PYTHON_VERSION: "3.12"
-  CHECKPOINT_BRANCH: cache-auto
-  STAGE_TIMEOUT_SECONDS: "19800"
-  STAGE_KILL_GRACE_SECONDS: "30"
-  STEP_BUDGET_SECONDS: "20400"
-  ARTIFACT_PREFIX: goangel-cache
-
 jobs:
-  run_chain:
-    name: "Chain sequentiel"
-    runs-on: ubuntu-latest
-    timeout-minutes: 357
+  prepare:
+    name: "01 - Prepare"
+    if: inputs.force_stage == '' || inputs.force_stage == 'prepare'
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: prepare
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  train_xgb:
+    name: "02 - XGBoost"
+    needs: prepare
+    if: |
+      always() && !cancelled() &&
+      (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_xgb')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_xgb
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
+  train_lgbm:
+    name: "03 - LightGBM"
+    needs: train_xgb
+    if: |
+      always() && !cancelled() &&
+      (needs.train_xgb.result == 'success' || needs.train_xgb.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_lgbm')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_lgbm
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -q requests python-dotenv numpy pandas scipy scikit-learn
-          pip install -q xgboost lightgbm catboost penaltyblog
-          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+  train_catboost:
+    name: "04 - CatBoost"
+    needs: train_lgbm
+    if: |
+      always() && !cancelled() &&
+      (needs.train_lgbm.result == 'success' || needs.train_lgbm.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_catboost')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_catboost
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-      - name: Write env file
-        run: |
-          cat > .env <<ENVEOF
-          BZZOIRO_TOKENS="${{ secrets.BZZOIRO_TOKENS }}"
-          BZZOIRO_WORKERS_PER_KEY=${{ inputs.workers_per_key }}
-          BZZOIRO_MAX_WORKERS=${{ inputs.max_workers }}
-          BZZOIRO_RATE_LIMIT_PER_MINUTE=${{ inputs.rate_limit_per_minute }}
-          BZZOIRO_RATE_LIMIT_SAFETY_MARGIN=1
-          BZZOIRO_HISTORICAL_SEASONS_LOOKBACK=${{ inputs.seasons_lookback }}
-          BZZOIRO_ENRICH_XG=${{ inputs.enrich_xg }}
-          API_MAX_RETRIES=6
-          API_RETRY_BACKOFF_SECONDS=0.4
-          API_TIMEOUT_SECONDS=25
-          GOANGEL_CACHE_DIR=./cache
-          GOANGEL_LOG_LEVEL=INFO
-          GOANGEL_GITHUB_PUSH=true
-          GOANGEL_GITHUB_REPO=${{ github.repository }}
-          GOANGEL_GITHUB_USER=${{ github.repository_owner }}
-          GOANGEL_GITHUB_BRANCH=${{ env.CHECKPOINT_BRANCH }}
-          GH_PAT=${{ secrets.GH_PAT }}
-          GOANGEL_MAX_ATTEMPTS_PER_MODEL=${{ inputs.max_attempts_per_model }}
-          ENVEOF
-          echo "Config: workers ${{ inputs.workers_per_key }}/cle, max ${{ inputs.max_workers }}, rate ${{ inputs.rate_limit_per_minute }}/min, attempts ${{ inputs.max_attempts_per_model }}"
+  train_rf:
+    name: "05 - Random Forest"
+    needs: train_catboost
+    if: |
+      always() && !cancelled() &&
+      (needs.train_catboost.result == 'success' || needs.train_catboost.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_rf')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_rf
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-      - name: Restore checkpoint branch
-        continue-on-error: true
-        run: |
-          mkdir -p cache
-          if gh api repos/${{ github.repository }}/branches/${{ env.CHECKPOINT_BRANCH }} >/dev/null 2>&1; then
-            rm -rf /tmp/ckpt
-            git clone --depth 1 --branch ${{ env.CHECKPOINT_BRANCH }} \
-              "https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" \
-              /tmp/ckpt
-            if [ -d /tmp/ckpt/cache ]; then
-              cp -r /tmp/ckpt/cache/. cache/ 2>/dev/null || true
-            fi
-            echo "Checkpoint restaure"
-          else
-            echo "Aucun checkpoint precedent"
-          fi
+  train_dl:
+    name: "06 - Deep Learning"
+    needs: train_rf
+    if: |
+      always() && !cancelled() &&
+      (needs.train_rf.result == 'success' || needs.train_rf.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_dl')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_dl
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-      - name: Reset progress if requested
-        if: ${{ inputs.reset_progress == 'true' || inputs.is_rechain != 'true' && inputs.reset_progress == 'true' }}
-        run: |
-          python3 main.py --reset-progress || true
+  train_pb_poisson:
+    name: "07 - PB Poisson"
+    needs: train_dl
+    if: |
+      always() && !cancelled() &&
+      (needs.train_dl.result == 'success' || needs.train_dl.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_pb_poisson')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_pb_poisson
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-      - name: Initial reset for manual trigger
-        if: ${{ inputs.is_rechain != 'true' && inputs.reset_progress != 'false' }}
-        run: |
-          if [ "${{ inputs.reset_progress }}" = "true" ]; then
-            python3 main.py --reset-progress || true
-          fi
+  train_pb_dixon_coles:
+    name: "08 - PB Dixon-Coles"
+    needs: train_pb_poisson
+    if: |
+      always() && !cancelled() &&
+      (needs.train_pb_poisson.result == 'success' || needs.train_pb_poisson.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_pb_dixon_coles')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_pb_dixon_coles
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-      - name: Run chained stages
-        id: chain
-        continue-on-error: true
-        run: |
-          set +e
-          START_TS=$(date +%s)
-          BUDGET=${{ env.STEP_BUDGET_SECONDS }}
-          ALL_DONE="false"
-          STAGES_EXECUTED=0
+  train_pb_bivariate:
+    name: "09 - PB Bivariate"
+    needs: train_pb_dixon_coles
+    if: |
+      always() && !cancelled() &&
+      (needs.train_pb_dixon_coles.result == 'success' || needs.train_pb_dixon_coles.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_pb_bivariate')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_pb_bivariate
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-          while true; do
-            ELAPSED=$(($(date +%s) - START_TS))
-            REMAINING=$((BUDGET - ELAPSED))
+  train_pb_negbinomial:
+    name: "10 - PB NegBin"
+    needs: train_pb_bivariate
+    if: |
+      always() && !cancelled() &&
+      (needs.train_pb_bivariate.result == 'success' || needs.train_pb_bivariate.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_pb_negbinomial')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_pb_negbinomial
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-            if [ $REMAINING -lt 300 ]; then
-              echo "Budget epuise, chainage..."
-              break
-            fi
+  train_pb_zeroinflated:
+    name: "11 - PB ZeroInflated"
+    needs: train_pb_negbinomial
+    if: |
+      always() && !cancelled() &&
+      (needs.train_pb_negbinomial.result == 'success' || needs.train_pb_negbinomial.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_pb_zeroinflated')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_pb_zeroinflated
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-            NEXT_STAGE=$(python3 main.py --stage next 2>/dev/null | grep '^NEXT:' | cut -d: -f2 | tr -d '[:space:]')
-            echo "=== Next stage: $NEXT_STAGE (elapsed ${ELAPSED}s, remaining ${REMAINING}s) ==="
+  train_pb_weibull:
+    name: "12 - PB Weibull"
+    needs: train_pb_zeroinflated
+    if: |
+      always() && !cancelled() &&
+      (needs.train_pb_zeroinflated.result == 'success' || needs.train_pb_zeroinflated.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_pb_weibull')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_pb_weibull
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-            if [ "$NEXT_STAGE" = "DONE" ]; then
-              echo "Tous les stages termines"
-              ALL_DONE="true"
-              break
-            fi
+  train_pb_bayesian:
+    name: "13 - PB Bayesian"
+    needs: train_pb_weibull
+    if: |
+      always() && !cancelled() &&
+      (needs.train_pb_weibull.result == 'success' || needs.train_pb_weibull.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_pb_bayesian')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_pb_bayesian
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-            if [ -z "$NEXT_STAGE" ]; then
-              echo "Impossible de determiner le prochain stage"
-              break
-            fi
+  train_pb_hierarchical:
+    name: "14 - PB Hierarchical"
+    needs: train_pb_bayesian
+    if: |
+      always() && !cancelled() &&
+      (needs.train_pb_bayesian.result == 'success' || needs.train_pb_bayesian.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'train_pb_hierarchical')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: train_pb_hierarchical
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit
 
-            STAGE_TIMEOUT=$((REMAINING - 120))
-            if [ $STAGE_TIMEOUT -gt ${{ env.STAGE_TIMEOUT_SECONDS }} ]; then
-              STAGE_TIMEOUT=${{ env.STAGE_TIMEOUT_SECONDS }}
-            fi
-            echo "Timeout pour ce stage: ${STAGE_TIMEOUT}s"
-
-            timeout --signal=TERM --kill-after=${{ env.STAGE_KILL_GRACE_SECONDS }}s \
-              $STAGE_TIMEOUT \
-              python3 -u main.py --stage "$NEXT_STAGE" 2>&1 | tee -a training.log
-            RC=${PIPESTATUS[0]}
-            STAGES_EXECUTED=$((STAGES_EXECUTED + 1))
-
-            echo "Stage $NEXT_STAGE RC=$RC"
-
-            if [ $RC -eq 0 ]; then
-              echo "Stage $NEXT_STAGE reussi"
-              continue
-            elif [ $RC -eq 124 ] || [ $RC -eq 143 ]; then
-              echo "Stage $NEXT_STAGE timeout volontaire (RC=$RC)"
-              break
-            elif [ $RC -eq 3 ]; then
-              echo "::error::Stage $NEXT_STAGE a epuise ses tentatives"
-              exit 3
-            else
-              echo "::error::Stage $NEXT_STAGE hard failure (RC=$RC)"
-              exit 1
-            fi
-          done
-
-          echo "all_done=$ALL_DONE" >> $GITHUB_OUTPUT
-          echo "stages_executed=$STAGES_EXECUTED" >> $GITHUB_OUTPUT
-          exit 0
-
-      - name: Save cache snapshot
-        if: always()
-        run: |
-          mkdir -p /tmp/save
-          [ -d cache ] && tar czf /tmp/save/cache.tar.gz cache || true
-          ls -lh /tmp/save/ || true
-
-      - name: Upload artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_PREFIX }}-${{ github.run_id }}
-          path: /tmp/save/cache.tar.gz
-          retention-days: 30
-          if-no-files-found: warn
-
-      - name: Upload log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: training-log-${{ github.run_id }}
-          path: training.log
-          retention-days: 30
-          if-no-files-found: warn
-
-      - name: Push checkpoint branch
-        if: always()
-        run: |
-          set +e
-          cd /tmp
-          rm -rf goangel_push
-          git clone "https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" goangel_push
-          cd goangel_push
-          git config user.email "actions@users.noreply.github.com"
-          git config user.name "GOANGEL Auto"
-          git checkout -B ${{ env.CHECKPOINT_BRANCH }}
-          mkdir -p cache
-          if [ -d "${{ github.workspace }}/cache" ]; then
-            cp -r ${{ github.workspace }}/cache/. cache/ 2>/dev/null || true
-          fi
-          git add -A
-          git commit -m "checkpoint run_${{ github.run_id }} $(date +%s)" || echo "no changes"
-          git push origin ${{ env.CHECKPOINT_BRANCH }} --force
-
-      - name: Chain next run
-        if: |
-          steps.chain.outputs.all_done != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
-        run: |
-          sleep 15
-          gh workflow run train.yml \
-            --repo ${{ github.repository }} \
-            --ref ${{ github.ref_name }} \
-            -f seasons_lookback=${{ inputs.seasons_lookback }} \
-            -f enrich_xg=${{ inputs.enrich_xg }} \
-            -f workers_per_key=${{ inputs.workers_per_key }} \
-            -f max_workers=${{ inputs.max_workers }} \
-            -f rate_limit_per_minute=${{ inputs.rate_limit_per_minute }} \
-            -f max_attempts_per_model=${{ inputs.max_attempts_per_model }} \
-            -f reset_progress=false \
-            -f is_rechain=true
-          echo "Run suivant chaine"
+  finalize:
+    name: "15 - Finalize"
+    needs: train_pb_hierarchical
+    if: |
+      always() && !cancelled() &&
+      (needs.train_pb_hierarchical.result == 'success' || needs.train_pb_hierarchical.result == 'skipped') &&
+      (inputs.force_stage == '' || inputs.force_stage == 'finalize')
+    uses: ./.github/workflows/_stage_runner.yml
+    with:
+      stage: finalize
+      seasons_lookback: ${{ inputs.seasons_lookback }}
+      enrich_xg: ${{ inputs.enrich_xg }}
+      workers_per_key: ${{ inputs.workers_per_key }}
+      max_workers: ${{ inputs.max_workers }}
+      rate_limit_per_minute: ${{ inputs.rate_limit_per_minute }}
+      max_attempts_per_model: ${{ inputs.max_attempts_per_model }}
+      is_retry: ${{ inputs.is_retry }}
+    secrets: inherit

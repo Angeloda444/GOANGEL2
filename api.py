@@ -865,21 +865,49 @@ def get_season_matches(
     league_id: int,
     season_id: int,
     per_page: int = _API_PAGE_LIMIT,
+    only_finished: bool = True,
 ) -> List[Dict[str, Any]]:
     url = f"{API_BASE_URL}/events/"
     params = {
         "league_id": int(league_id),
         "season_id": int(season_id),
     }
-    matches = _paginate(url, params, per_page=per_page)
-    for m in matches:
+    raw_matches = _paginate(url, params, per_page=per_page)
+    if not only_finished:
+        for m in raw_matches:
+            if not isinstance(m, dict):
+                continue
+            if _safe_int(m.get("league_id")) is None:
+                m["league_id"] = int(league_id)
+            if _safe_int(m.get("season_id")) is None:
+                m["season_id"] = int(season_id)
+        return raw_matches
+    finished: List[Dict[str, Any]] = []
+    non_finished_count = 0
+    missing_score_count = 0
+    for m in raw_matches:
         if not isinstance(m, dict):
             continue
         if _safe_int(m.get("league_id")) is None:
             m["league_id"] = int(league_id)
         if _safe_int(m.get("season_id")) is None:
             m["season_id"] = int(season_id)
-    return matches
+        status = str(m.get("status", "")).strip().lower()
+        if status != "finished":
+            non_finished_count += 1
+            continue
+        if m.get("home_score") is None or m.get("away_score") is None:
+            missing_score_count += 1
+            continue
+        finished.append(m)
+    if non_finished_count > 0 or missing_score_count > 0:
+        logger.info(
+            "Ligue %d saison %d : %d non-joues + %d sans score exclus "
+            "(%d FINISHED retenus)",
+            league_id, season_id, non_finished_count, missing_score_count,
+            len(finished),
+        )
+    return finished
 
 
 def get_matches_by_date(
@@ -1016,15 +1044,41 @@ def _fetch_season_task(
     league_id: int,
     season_id: int,
     season_year: int,
+    max_retries: int = 3,
 ) -> Tuple[int, int, int, List[Dict[str, Any]]]:
-    try:
-        matches = get_season_matches(league_id, season_id)
-        return (league_id, season_id, season_year, matches)
-    except Exception as exc:
-        logger.warning(
-            "Erreur ligue %d saison %d : %s", league_id, season_id, exc
-        )
-        return (league_id, season_id, season_year, [])
+    last_error: Optional[str] = None
+    for attempt in range(max_retries):
+        try:
+            matches = get_season_matches(league_id, season_id)
+            if matches:
+                if attempt > 0:
+                    logger.info(
+                        "Ligue %d saison %d : %d matchs apres %d tentative(s)",
+                        league_id, season_id, len(matches), attempt + 1,
+                    )
+                return (league_id, season_id, season_year, matches)
+            last_error = "empty_response"
+            logger.warning(
+                "Ligue %d saison %d : reponse vide (tentative %d/%d)",
+                league_id, season_id, attempt + 1, max_retries,
+            )
+            if attempt < max_retries - 1:
+                time.sleep(1.5 * (attempt + 1))
+                continue
+        except Exception as exc:
+            last_error = str(exc)
+            logger.warning(
+                "Erreur ligue %d saison %d (tentative %d/%d) : %s",
+                league_id, season_id, attempt + 1, max_retries, exc,
+            )
+            if attempt < max_retries - 1:
+                time.sleep(1.5 * (attempt + 1))
+                continue
+    logger.error(
+        "Ligue %d saison %d : echec definitif apres %d tentatives (%s)",
+        league_id, season_id, max_retries, last_error,
+    )
+    return (league_id, season_id, season_year, [])
 
 
 def get_historical_matches(
@@ -1076,15 +1130,45 @@ def get_historical_matches(
                 continue
 
     tasks: List[Tuple[int, int, int]] = []
+    seen_lid_year: Set[Tuple[int, int]] = set()
+    duplicates_removed = 0
     for lid, seasons in seasons_by_league.items():
         valid = [s for s in seasons if isinstance(s.get("year"), int)]
-        valid.sort(key=lambda s: s["year"])
-        picked = valid[-seasons_lookback:] if seasons_lookback > 0 else valid
-        for s in picked:
-            sid = _safe_int(s.get("id"))
-            yr = _safe_int(s.get("year"))
-            if sid is not None and yr is not None:
-                tasks.append((lid, sid, yr))
+        if not valid:
+            continue
+        by_year: Dict[int, List[Dict[str, Any]]] = {}
+        for s in valid:
+            yr_s = _safe_int(s.get("year"))
+            if yr_s is None:
+                continue
+            by_year.setdefault(yr_s, []).append(s)
+        sorted_years = sorted(by_year.keys())
+        if seasons_lookback > 0:
+            picked_years = sorted_years[-seasons_lookback:]
+        else:
+            picked_years = sorted_years
+        for yr in picked_years:
+            candidates = by_year.get(yr, [])
+            if not candidates:
+                continue
+            best: Optional[Dict[str, Any]] = None
+            for c in candidates:
+                if c.get("is_current") is True:
+                    best = c
+                    break
+            if best is None:
+                best = candidates[0]
+            sid = _safe_int(best.get("id"))
+            if sid is None:
+                continue
+            key = (int(lid), int(yr))
+            if key in seen_lid_year:
+                duplicates_removed += 1
+                continue
+            seen_lid_year.add(key)
+            tasks.append((lid, sid, yr))
+    if duplicates_removed > 0:
+        print(f"🧹 {duplicates_removed} saisons dupliquees supprimees", flush=True)
 
     print(f"📊 {len(tasks)} tâches (ligue × saison)", flush=True)
 
@@ -1169,6 +1253,32 @@ def get_historical_matches(
             print(f"   📅 {league_name} {year} — Total : {seasons[year]} matchs")
     print()
 
+    if all_raw:
+        _before = len(all_raw)
+        _kept: List[Dict[str, Any]] = []
+        _non_finished = 0
+        _no_score = 0
+        for m in all_raw:
+            if not isinstance(m, dict):
+                continue
+            status = str(m.get("status", "")).strip().lower()
+            if status != "finished":
+                _non_finished += 1
+                continue
+            if m.get("home_score") is None or m.get("away_score") is None:
+                _no_score += 1
+                continue
+            _kept.append(m)
+        all_raw = _kept
+        _excluded = _before - len(all_raw)
+        if _excluded > 0:
+            print(
+                f"🎯 {_excluded} matchs non-jouables exclus AVANT enrichissement "
+                f"({_non_finished} non-finished + {_no_score} sans score) "
+                f"→ {len(all_raw)} FINISHED retenus",
+                flush=True,
+            )
+
     if enrich_xg and all_raw:
         to_enrich = [m for m in all_raw if m.get("stat_home_xg") is None]
         already = len(all_raw) - len(to_enrich)
@@ -1205,6 +1315,31 @@ def get_historical_matches(
             flush=True,
         )
 
+    if all_raw:
+        before_filter = len(all_raw)
+        all_raw = [
+            m for m in all_raw
+            if isinstance(m, dict)
+            and str(m.get("status", "")).strip().lower() in (
+                "finished", "ft", "match_finished",
+            )
+        ]
+        filtered_out = before_filter - len(all_raw)
+        if filtered_out > 0:
+            print(
+                f"🎯 {filtered_out} matchs non-FINISHED exclus "
+                f"({len(all_raw)} matchs joues conserves)",
+                flush=True,
+            )
+
+    if all_raw:
+        def _date_sort_key(m: Dict[str, Any]) -> str:
+            d = m.get("event_date") or m.get("date") or ""
+            s = str(d) if d else "9999-12-31T23:59:59+00:00"
+            return s
+        all_raw = sorted(all_raw, key=_date_sort_key)
+        print(f"📅 {len(all_raw)} matchs tries chronologiquement", flush=True)
+
     transformed: List[Dict[str, Any]] = []
     for m in all_raw:
         t = transform_bzzoiro_match(m)
@@ -1227,9 +1362,61 @@ def get_historical_matches(
             flush=True,
         )
 
+    seen_ids_final: Set[int] = set()
+    unique_transformed: List[Dict[str, Any]] = []
+    for t in transformed:
+        tid = t.get("id")
+        if tid is None:
+            continue
+        if tid in seen_ids_final:
+            continue
+        seen_ids_final.add(tid)
+        unique_transformed.append(t)
+    dedup_removed = len(transformed) - len(unique_transformed)
+    if dedup_removed > 0:
+        print(
+            f"🧹 {dedup_removed} doublons d'ID match supprimes",
+            flush=True,
+        )
+        transformed = unique_transformed
+
+    finished_count = sum(1 for t in transformed if t.get("status") == "FINISHED")
+    non_finished = len(transformed) - finished_count
+    print(
+        f"📊 Stats : {finished_count} FINISHED | {non_finished} autres "
+        f"(total {len(transformed)})",
+        flush=True,
+    )
+    if non_finished > 0:
+        logger.info(
+            "%d matchs non-finished presents dans le dataset final",
+            non_finished,
+        )
+
     duration = time.time() - t0
     stage_print(f"🏆 TOTAL MATCHS HISTORIQUES : {len(transformed)}")
     print(f"⏱️ Durée : {duration:.1f}s", flush=True)
+
+    _fin = sum(1 for t in transformed if t.get("status") == "FINISHED")
+    _other = len(transformed) - _fin
+    print(
+        f"📊 Bilan final : {_fin} FINISHED utilisables | "
+        f"{_other} non-joués (ignorés pour l'entraînement)",
+        flush=True,
+    )
+
+    _seen: Set[int] = set()
+    _uniq: List[Dict[str, Any]] = []
+    for t in transformed:
+        tid = t.get("id")
+        if tid is None or tid in _seen:
+            continue
+        _seen.add(tid)
+        _uniq.append(t)
+    if len(_uniq) != len(transformed):
+        print(f"🧹 {len(transformed) - len(_uniq)} doublons ID supprimés", flush=True)
+        transformed = _uniq
+
     return transformed
 
 
