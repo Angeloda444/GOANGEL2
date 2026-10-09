@@ -1,30 +1,71 @@
-name: GOANGEL Training
+name: GOANGEL Sequential Training
 
 on:
   workflow_dispatch:
     inputs:
       seasons_lookback:
-        description: "Nombre de saisons (1-5)"
+        description: "Nombre de saisons historiques"
         required: false
-        default: "2"
+        default: "3"
       enrich_xg:
-        description: "Enrichir xG+stats (true/false)"
+        description: "Enrichir avec xG et statistiques"
         required: false
         default: "true"
+      workers_per_key:
+        description: "Workers par cle API"
+        required: false
+        default: "4"
+      max_workers:
+        description: "Nombre maximal de workers"
+        required: false
+        default: "256"
+      rate_limit_per_minute:
+        description: "Requetes par minute par cle"
+        required: false
+        default: "20"
+      max_attempts_per_model:
+        description: "Tentatives maximales par modele"
+        required: false
+        default: "15"
+      reset_progress:
+        description: "Reinitialiser tout le progres"
+        required: false
+        default: "false"
+      is_rechain:
+        description: "Usage interne - chainage"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: goangel-sequential
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.12"
+  CHECKPOINT_BRANCH: cache-auto
+  STAGE_TIMEOUT_SECONDS: "19800"
+  STAGE_KILL_GRACE_SECONDS: "30"
+  STEP_BUDGET_SECONDS: "20400"
+  ARTIFACT_PREFIX: goangel-cache
 
 jobs:
-  train:
+  run_chain:
+    name: "Chain sequentiel"
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 357
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.12
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
 
       - name: Install dependencies
@@ -34,60 +75,185 @@ jobs:
           pip install -q xgboost lightgbm catboost penaltyblog
           pip install -q torch --index-url https://download.pytorch.org/whl/cpu
 
-      - name: Write .env from secrets
+      - name: Write env file
         run: |
           cat > .env <<ENVEOF
           BZZOIRO_TOKENS="${{ secrets.BZZOIRO_TOKENS }}"
-          BZZOIRO_WORKERS_PER_KEY=2
-          BZZOIRO_MAX_WORKERS=64
-          BZZOIRO_RATE_LIMIT_PER_MINUTE=10
+          BZZOIRO_WORKERS_PER_KEY=${{ inputs.workers_per_key }}
+          BZZOIRO_MAX_WORKERS=${{ inputs.max_workers }}
+          BZZOIRO_RATE_LIMIT_PER_MINUTE=${{ inputs.rate_limit_per_minute }}
+          BZZOIRO_RATE_LIMIT_SAFETY_MARGIN=1
           BZZOIRO_HISTORICAL_SEASONS_LOOKBACK=${{ inputs.seasons_lookback }}
           BZZOIRO_ENRICH_XG=${{ inputs.enrich_xg }}
+          API_MAX_RETRIES=6
+          API_RETRY_BACKOFF_SECONDS=0.4
+          API_TIMEOUT_SECONDS=25
           GOANGEL_CACHE_DIR=./cache
           GOANGEL_LOG_LEVEL=INFO
           GOANGEL_GITHUB_PUSH=true
-          GOANGEL_GITHUB_REPO=Angeloda444/GOANGEL2
-          GOANGEL_GITHUB_USER=Angeloda444
-          GOANGEL_GITHUB_BRANCH=cache-auto
+          GOANGEL_GITHUB_REPO=${{ github.repository }}
+          GOANGEL_GITHUB_USER=${{ github.repository_owner }}
+          GOANGEL_GITHUB_BRANCH=${{ env.CHECKPOINT_BRANCH }}
           GH_PAT=${{ secrets.GH_PAT }}
+          GOANGEL_MAX_ATTEMPTS_PER_MODEL=${{ inputs.max_attempts_per_model }}
           ENVEOF
-          echo "OK .env cree"
+          echo "Config: workers ${{ inputs.workers_per_key }}/cle, max ${{ inputs.max_workers }}, rate ${{ inputs.rate_limit_per_minute }}/min, attempts ${{ inputs.max_attempts_per_model }}"
 
-      - name: Run training
+      - name: Restore checkpoint branch
+        continue-on-error: true
         run: |
-          python3 -u main.py --refresh 2>&1 | tee training.log
+          mkdir -p cache
+          if gh api repos/${{ github.repository }}/branches/${{ env.CHECKPOINT_BRANCH }} >/dev/null 2>&1; then
+            rm -rf /tmp/ckpt
+            git clone --depth 1 --branch ${{ env.CHECKPOINT_BRANCH }} \
+              "https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" \
+              /tmp/ckpt
+            if [ -d /tmp/ckpt/cache ]; then
+              cp -r /tmp/ckpt/cache/. cache/ 2>/dev/null || true
+            fi
+            echo "Checkpoint restaure"
+          else
+            echo "Aucun checkpoint precedent"
+          fi
 
-      - name: Save cache and checkpoints
+      - name: Reset progress if requested
+        if: ${{ inputs.reset_progress == 'true' || inputs.is_rechain != 'true' && inputs.reset_progress == 'true' }}
+        run: |
+          python3 main.py --reset-progress || true
+
+      - name: Initial reset for manual trigger
+        if: ${{ inputs.is_rechain != 'true' && inputs.reset_progress != 'false' }}
+        run: |
+          if [ "${{ inputs.reset_progress }}" = "true" ]; then
+            python3 main.py --reset-progress || true
+          fi
+
+      - name: Run chained stages
+        id: chain
+        continue-on-error: true
+        run: |
+          set +e
+          START_TS=$(date +%s)
+          BUDGET=${{ env.STEP_BUDGET_SECONDS }}
+          ALL_DONE="false"
+          STAGES_EXECUTED=0
+
+          while true; do
+            ELAPSED=$(($(date +%s) - START_TS))
+            REMAINING=$((BUDGET - ELAPSED))
+
+            if [ $REMAINING -lt 300 ]; then
+              echo "Budget epuise, chainage..."
+              break
+            fi
+
+            NEXT_STAGE=$(python3 main.py --stage next 2>/dev/null | grep '^NEXT:' | cut -d: -f2 | tr -d '[:space:]')
+            echo "=== Next stage: $NEXT_STAGE (elapsed ${ELAPSED}s, remaining ${REMAINING}s) ==="
+
+            if [ "$NEXT_STAGE" = "DONE" ]; then
+              echo "Tous les stages termines"
+              ALL_DONE="true"
+              break
+            fi
+
+            if [ -z "$NEXT_STAGE" ]; then
+              echo "Impossible de determiner le prochain stage"
+              break
+            fi
+
+            STAGE_TIMEOUT=$((REMAINING - 120))
+            if [ $STAGE_TIMEOUT -gt ${{ env.STAGE_TIMEOUT_SECONDS }} ]; then
+              STAGE_TIMEOUT=${{ env.STAGE_TIMEOUT_SECONDS }}
+            fi
+            echo "Timeout pour ce stage: ${STAGE_TIMEOUT}s"
+
+            timeout --signal=TERM --kill-after=${{ env.STAGE_KILL_GRACE_SECONDS }}s \
+              $STAGE_TIMEOUT \
+              python3 -u main.py --stage "$NEXT_STAGE" 2>&1 | tee -a training.log
+            RC=${PIPESTATUS[0]}
+            STAGES_EXECUTED=$((STAGES_EXECUTED + 1))
+
+            echo "Stage $NEXT_STAGE RC=$RC"
+
+            if [ $RC -eq 0 ]; then
+              echo "Stage $NEXT_STAGE reussi"
+              continue
+            elif [ $RC -eq 124 ] || [ $RC -eq 143 ]; then
+              echo "Stage $NEXT_STAGE timeout volontaire (RC=$RC)"
+              break
+            elif [ $RC -eq 3 ]; then
+              echo "::error::Stage $NEXT_STAGE a epuise ses tentatives"
+              exit 3
+            else
+              echo "::error::Stage $NEXT_STAGE hard failure (RC=$RC)"
+              exit 1
+            fi
+          done
+
+          echo "all_done=$ALL_DONE" >> $GITHUB_OUTPUT
+          echo "stages_executed=$STAGES_EXECUTED" >> $GITHUB_OUTPUT
+          exit 0
+
+      - name: Save cache snapshot
         if: always()
         run: |
           mkdir -p /tmp/save
           [ -d cache ] && tar czf /tmp/save/cache.tar.gz cache || true
-          [ -d cache/checkpoints ] && tar czf /tmp/save/checkpoints.tar.gz cache/checkpoints || true
           ls -lh /tmp/save/ || true
 
-      - name: Upload cache artifact
+      - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: goangel-cache
+          name: ${{ env.ARTIFACT_PREFIX }}-${{ github.run_id }}
           path: /tmp/save/cache.tar.gz
           retention-days: 30
           if-no-files-found: warn
 
-      - name: Upload checkpoints artifact
+      - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: goangel-checkpoints
-          path: /tmp/save/checkpoints.tar.gz
-          retention-days: 30
-          if-no-files-found: warn
-
-      - name: Upload training log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: training-log
+          name: training-log-${{ github.run_id }}
           path: training.log
           retention-days: 30
           if-no-files-found: warn
+
+      - name: Push checkpoint branch
+        if: always()
+        run: |
+          set +e
+          cd /tmp
+          rm -rf goangel_push
+          git clone "https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" goangel_push
+          cd goangel_push
+          git config user.email "actions@users.noreply.github.com"
+          git config user.name "GOANGEL Auto"
+          git checkout -B ${{ env.CHECKPOINT_BRANCH }}
+          mkdir -p cache
+          if [ -d "${{ github.workspace }}/cache" ]; then
+            cp -r ${{ github.workspace }}/cache/. cache/ 2>/dev/null || true
+          fi
+          git add -A
+          git commit -m "checkpoint run_${{ github.run_id }} $(date +%s)" || echo "no changes"
+          git push origin ${{ env.CHECKPOINT_BRANCH }} --force
+
+      - name: Chain next run
+        if: |
+          steps.chain.outputs.all_done != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          sleep 15
+          gh workflow run train.yml \
+            --repo ${{ github.repository }} \
+            --ref ${{ github.ref_name }} \
+            -f seasons_lookback=${{ inputs.seasons_lookback }} \
+            -f enrich_xg=${{ inputs.enrich_xg }} \
+            -f workers_per_key=${{ inputs.workers_per_key }} \
+            -f max_workers=${{ inputs.max_workers }} \
+            -f rate_limit_per_minute=${{ inputs.rate_limit_per_minute }} \
+            -f max_attempts_per_model=${{ inputs.max_attempts_per_model }} \
+            -f reset_progress=false \
+            -f is_rechain=true
+          echo "Run suivant chaine"
