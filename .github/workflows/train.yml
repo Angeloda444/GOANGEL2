@@ -1,0 +1,93 @@
+name: GOANGEL Training
+
+on:
+  workflow_dispatch:
+    inputs:
+      seasons_lookback:
+        description: "Nombre de saisons (1-5)"
+        required: false
+        default: "2"
+      enrich_xg:
+        description: "Enrichir xG+stats (true/false)"
+        required: false
+        default: "true"
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -q requests python-dotenv numpy pandas scipy scikit-learn
+          pip install -q xgboost lightgbm catboost penaltyblog
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Write .env from secrets
+        run: |
+          cat > .env <<ENVEOF
+          BZZOIRO_TOKENS="${{ secrets.BZZOIRO_TOKENS }}"
+          BZZOIRO_WORKERS_PER_KEY=2
+          BZZOIRO_MAX_WORKERS=64
+          BZZOIRO_RATE_LIMIT_PER_MINUTE=10
+          BZZOIRO_HISTORICAL_SEASONS_LOOKBACK=${{ inputs.seasons_lookback }}
+          BZZOIRO_ENRICH_XG=${{ inputs.enrich_xg }}
+          GOANGEL_CACHE_DIR=./cache
+          GOANGEL_LOG_LEVEL=INFO
+          GOANGEL_GITHUB_PUSH=true
+          GOANGEL_GITHUB_REPO=Angeloda444/GOANGEL2
+          GOANGEL_GITHUB_USER=Angeloda444
+          GOANGEL_GITHUB_BRANCH=cache-auto
+          GH_PAT=${{ secrets.GH_PAT }}
+          ENVEOF
+          echo "OK .env cree"
+
+      - name: Run training
+        run: |
+          python3 -u main.py --refresh 2>&1 | tee training.log
+
+      - name: Save cache and checkpoints
+        if: always()
+        run: |
+          mkdir -p /tmp/save
+          [ -d cache ] && tar czf /tmp/save/cache.tar.gz cache || true
+          [ -d cache/checkpoints ] && tar czf /tmp/save/checkpoints.tar.gz cache/checkpoints || true
+          ls -lh /tmp/save/ || true
+
+      - name: Upload cache artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: goangel-cache
+          path: /tmp/save/cache.tar.gz
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload checkpoints artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: goangel-checkpoints
+          path: /tmp/save/checkpoints.tar.gz
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload training log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-log
+          path: training.log
+          retention-days: 30
+          if-no-files-found: warn
