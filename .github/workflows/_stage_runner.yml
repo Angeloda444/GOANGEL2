@@ -30,8 +30,6 @@ on:
     secrets:
       BZZOIRO_TOKENS:
         required: true
-      GH_PAT:
-        required: true
 
 jobs:
   run:
@@ -49,15 +47,11 @@ jobs:
         env:
           TOKENS: ${{ secrets.BZZOIRO_TOKENS }}
         run: |
-          if [ -z "${GH_PAT}" ]; then
-            echo "::error::GH_PAT secret manquant ou vide"
-            exit 1
-          fi
           if [ -z "${TOKENS}" ]; then
             echo "::error::BZZOIRO_TOKENS secret manquant ou vide"
             exit 1
           fi
-          echo "✅ Secrets presents (GH_PAT len=${#GH_PAT}, tokens len=${#TOKENS})"
+          echo "✅ BZZOIRO_TOKENS présent (len=${#TOKENS})"
 
       - name: Run stage
         env:
