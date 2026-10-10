@@ -2810,13 +2810,13 @@ def _fit_pb_model(
 ) -> Tuple[str, Any]:
     cls = _PB_MODEL_CLASSES.get(class_name)
     if cls is None:
-        return "error", f"Modèle penaltyblog inconnu : {class_name}"
-    try:
-        m = cls(gh, ga, th, ta)
-    except Exception as exc:
-        return "error", str(exc)
+        return "error", f"Modele penaltyblog inconnu : {class_name}"
 
     if class_name in _PB_BAYESIAN_MODELS:
+        try:
+            m = cls(gh, ga, th, ta)
+        except Exception as exc:
+            return "error", str(exc)
         try:
             m.fit(
                 n_samples=BAYESIAN_N_SAMPLES,
@@ -2827,12 +2827,61 @@ def _fit_pb_model(
             return "ok", m
         except Exception as exc:
             return "error", str(exc)
-    else:
+
+    optimiser_attempts: List[Tuple[str, Dict[str, Any]]] = [
+        ("SLSQP", {}),
+        ("SLSQP", {"options": {"maxiter": 2000}}),
+        ("SLSQP", {"options": {"maxiter": 10000, "ftol": 1e-10}}),
+        ("L-BFGS-B", {"options": {"maxiter": 2000}}),
+        ("L-BFGS-B", {"options": {"maxiter": 10000, "ftol": 1e-10}}),
+        ("TNC", {"options": {"maxiter": 10000}}),
+        ("trust-constr", {"options": {"maxiter": 5000}}),
+        ("Nelder-Mead", {"options": {"maxiter": 20000}}),
+        ("Powell", {"options": {"maxiter": 20000}}),
+    ]
+
+    last_error = "aucune tentative effectuee"
+    for attempt_num, (opt_name, extra_kwargs) in enumerate(optimiser_attempts, 1):
         try:
-            m.fit()
-            return "ok", m
+            m = cls(gh, ga, th, ta)
         except Exception as exc:
-            return "error", str(exc)
+            last_error = f"init: {exc}"
+            continue
+
+        call_variants: List[Dict[str, Any]] = [
+            {"optimiser": opt_name, **extra_kwargs},
+            {"method": opt_name, **extra_kwargs},
+        ]
+
+        for variant in call_variants:
+            try:
+                m.fit(**variant)
+                params_found = False
+                for attr in ("_params", "params", "coefs_", "_coefs"):
+                    val = getattr(m, attr, None)
+                    if val is not None:
+                        params_found = True
+                        break
+                if params_found:
+                    logger.info(
+                        "PB %s : fit OK (attempt %d, optimiser=%s)",
+                        class_name, attempt_num, opt_name,
+                    )
+                    return "ok", m
+                last_error = f"{opt_name} (attempt {attempt_num}) : params vides"
+            except TypeError as exc:
+                last_error = f"{opt_name} (TypeError) : {exc}"
+                continue
+            except Exception as exc:
+                msg = str(exc)
+                last_error = f"{opt_name} (attempt {attempt_num}) : {msg}"
+                logger.debug(
+                    "PB %s attempt %d (%s) echoue : %s",
+                    class_name, attempt_num, opt_name, msg,
+                )
+                continue
+
+    return "error", f"Tous les optimizers ont echoue ({last_error})"
 
 
 def _calibrate_or_keep(
