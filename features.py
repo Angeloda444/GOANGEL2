@@ -2812,44 +2812,75 @@ def _fit_pb_model(
     if cls is None:
         return "error", f"Modèle penaltyblog inconnu : {class_name}"
 
-    try:
-        m = cls(gh, ga, th, ta)
-    except Exception as exc:
-        return "error", f"Init {class_name} : {exc}"
-
     if class_name in _PB_BAYESIAN_MODELS:
         try:
+            m = cls(gh, ga, th, ta)
             m.fit(
                 n_samples=BAYESIAN_N_SAMPLES,
                 burn=BAYESIAN_BURN,
                 n_chains=BAYESIAN_N_CHAINS,
                 thin=BAYESIAN_THIN,
             )
+            logger.info("%s : Bayesian OK", class_name)
             return "ok", m
         except Exception as exc:
             return "error", f"Bayesian {class_name} : {exc}"
 
-    strategies: List[Tuple[str, Dict[str, Any]]] = [
-        ("SLSQP",         {"method": "SLSQP",         "options": {"maxiter": 5000}}),
-        ("trust-constr",  {"method": "trust-constr",  "options": {"maxiter": 5000}}),
-        ("Powell",        {"method": "Powell",        "options": {"maxiter": 5000}}),
-        ("Nelder-Mead",   {"method": "Nelder-Mead",   "options": {"maxiter": 5000}}),
-        ("L-BFGS-B",      {"method": "L-BFGS-B",      "options": {"maxiter": 5000}}),
-    ]
+    from collections import Counter
+    filter_levels: Tuple[int, ...] = (5, 10, 15, 20, 30)
+    opt_strategies: Tuple[str, ...] = ("SLSQP", "trust-constr")
+    last_errors: List[str] = []
 
-    errors: List[str] = []
-    for label, opts in strategies:
-        try:
-            m_fresh = cls(gh, ga, th, ta)
-            m_fresh.fit(minimizer_options=opts)
-            logger.info("%s : %s OK", class_name, label)
-            return "ok", m_fresh
-        except Exception as exc:
-            errors.append(f"{label} ({type(exc).__name__}) : {exc}")
-            logger.debug("%s : %s échoué → %s", class_name, label, exc)
+    for min_matches in filter_levels:
+        team_counts = Counter(list(th) + list(ta))
+        valid_teams = {t for t, c in team_counts.items() if c >= min_matches}
+
+        filtered: List[Tuple[str, str, int, int]] = []
+        for h, a, g_h, g_a in zip(th, ta, gh, ga):
+            if h not in valid_teams or a not in valid_teams:
+                continue
+            if g_h < 0 or g_h > 7 or g_a < 0 or g_a > 7:
+                continue
+            filtered.append((h, a, int(g_h), int(g_a)))
+
+        if len(filtered) < 100:
+            logger.warning(
+                "%s : min_matches=%d → seulement %d matchs, on saute",
+                class_name, min_matches, len(filtered),
+            )
             continue
 
-    return "error", f"Tous les optimizers ont echoue ({' | '.join(errors)})"
+        h_f = [r[0] for r in filtered]
+        a_f = [r[1] for r in filtered]
+        g_h_f = [r[2] for r in filtered]
+        g_a_f = [r[3] for r in filtered]
+
+        logger.info(
+            "%s : min_matches=%d → %d matchs, %d équipes",
+            class_name, min_matches, len(filtered), len(valid_teams),
+        )
+
+        for method in opt_strategies:
+            try:
+                m = cls(g_h_f, g_a_f, h_f, a_f)
+                m.fit(minimizer_options={
+                    "method": method,
+                    "options": {"maxiter": 5000},
+                })
+                logger.info(
+                    "%s : OK avec min_matches=%d + %s (%d matchs, %d équipes)",
+                    class_name, min_matches, method, len(filtered), len(valid_teams),
+                )
+                return "ok", m
+            except Exception as exc:
+                err = f"min_matches={min_matches} {method} : {type(exc).__name__} : {exc}"
+                last_errors.append(err)
+                logger.warning("%s : %s échoué → %s", class_name, method, exc)
+                continue
+
+    summary = " | ".join(last_errors[-6:])
+    return "error", f"Echec après {len(filter_levels)} filtres : {summary}"
+
 
 def _calibrate_or_keep(
     name: str,

@@ -36,3 +36,4 @@ env/
 .lfsconfig
 .gitattributes
 .env
+cache/checkpoints/raw_matches.jsonl
