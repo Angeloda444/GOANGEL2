@@ -76,11 +76,64 @@ echo "{\"count\": ${NEW_COUNT}, \"stage\": \"${STAGE}\", \"last_attempt\": \"$(d
 echo "▶️  Tentative ${NEW_COUNT}/${MAX_ATTEMPTS} pour ${STAGE}"
 
 START_TS=$(date +%s)
-timeout --signal=TERM --kill-after=30s 19800 \
-  python3 -u main.py --stage "${STAGE}" 2>&1 | tee training.log
-RC=${PIPESTATUS[0]}
-DURATION=$(($(date +%s) - START_TS))
-echo "🏁 Stage ${STAGE} terminé RC=${RC} en ${DURATION}s"
+START_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+TIMEOUT_SECONDS="${STAGE_TIMEOUT_SECONDS:-21600}"
+
+echo "─────────────────────────────────────────────────────────────"
+echo "▶️  Démarrage Python"
+echo "   Heure début    : ${START_DATE}"
+echo "   Timeout prévu  : ${TIMEOUT_SECONDS}s ($((${TIMEOUT_SECONDS} / 3600))h)"
+echo "   Commande       : python3 -u main.py --stage ${STAGE}"
+echo "─────────────────────────────────────────────────────────────"
+
+set +e
+python3 -u main.py --stage "${STAGE}" > training.log 2>&1 &
+PYTHON_PID=$!
+
+# Boucle de surveillance : attend ou timeout
+ELAPSED=0
+KILLED_BY_TIMEOUT=0
+while kill -0 ${PYTHON_PID} 2>/dev/null; do
+  sleep 10
+  ELAPSED=$((ELAPSED + 10))
+
+  if [ ${ELAPSED} -ge ${TIMEOUT_SECONDS} ]; then
+    echo "⏰ Timeout (${TIMEOUT_SECONDS}s) atteint, arrêt propre..."
+    kill -TERM ${PYTHON_PID} 2>/dev/null
+    sleep 30
+    kill -KILL ${PYTHON_PID} 2>/dev/null
+    KILLED_BY_TIMEOUT=1
+    break
+  fi
+done
+
+wait ${PYTHON_PID}
+RC=$?
+set -e
+
+END_TS=$(date +%s)
+END_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+DURATION=$((END_TS - START_TS))
+
+echo "─────────────────────────────────────────────────────────────"
+echo "🏁 Python terminé"
+echo "   Heure fin      : ${END_DATE}"
+echo "   Durée          : ${DURATION}s ($((${DURATION} / 60)) min)"
+echo "   Exit code      : ${RC}"
+echo "   Timeout atteint: ${KILLED_BY_TIMEOUT}"
+echo "─────────────────────────────────────────────────────────────"
+
+# Afficher les 100 dernières lignes du log
+echo ""
+echo "─── Dernières 100 lignes du log Python ───"
+tail -100 training.log
+echo "─────────────────────────────────────────"
+
+# Interpréter le code retour
+if [ ${KILLED_BY_TIMEOUT} -eq 1 ]; then
+  RC=124
+fi
 
 echo "↻ Push cache-auto..."
 cd /tmp && rm -rf gopush

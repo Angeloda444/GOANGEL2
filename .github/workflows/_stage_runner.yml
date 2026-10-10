@@ -65,6 +65,7 @@ jobs:
           MAX_ATTEMPTS: ${{ inputs.max_attempts_per_model }}
           IS_RETRY: ${{ inputs.is_retry }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STAGE_TIMEOUT_SECONDS: "21600"
         run: bash .github/scripts/run_stage.sh
 
       - uses: actions/upload-artifact@v4
