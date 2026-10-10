@@ -178,15 +178,11 @@ TOP_60_LEAGUES: Dict[int, str] = {
     14: "Pro League (BEL)",
     49: "J1 League",
     85: "Liga Profesional (ARG)",
-    96: "Austrian Bundesliga",
     84: "Danish Superliga",
-    99: "Czech First League",
     15: "Super League (SUI)",
     12: "Championship (ENG)",
-    94: "2. Bundesliga",
     89: "Ligue 2",
     38: "Segunda División",
-    100: "Serie B",
     34: "Brasileirão Serie B",
     18: "MLS",
     19: "Liga MX Apertura",
@@ -194,12 +190,17 @@ TOP_60_LEAGUES: Dict[int, str] = {
     17: "Saudi Pro League",
     53: "Botola Pro",
     47: "Tunisian Ligue 1",
+    86: "League One (ENG)",
+    87: "League Two (ENG)",
+    8: "Europa League",
+    83: "Conference League",
 }
 
 _LEAGUE_GROUPS: Dict[str, List[int]] = {
     "EUROPE_TOP5": [1, 3, 4, 5, 6],
-    "EUROPE_SECOND": [12, 94, 89, 38, 100],
-    "EUROPE_OTHER": [10, 2, 11, 13, 14, 96, 84, 99, 15],
+    "EUROPE_CUP": [8, 83],
+    "EUROPE_SECOND": [12, 86, 87, 89, 38],
+    "EUROPE_OTHER": [10, 2, 11, 13, 14, 84, 15],
     "AMERICAS": [9, 34, 18, 19, 20, 85],
     "ASIA_AFRICA": [49, 17, 53, 47],
 }
@@ -216,6 +217,7 @@ _LEAGUE_GROUPS["OTHER"] = _OTHER_LEAGUE_IDS
 
 COMPETITION_GROUP_ORDER: Tuple[str, ...] = (
     "EUROPE_TOP5",
+    "EUROPE_CUP",
     "EUROPE_SECOND",
     "EUROPE_OTHER",
     "AMERICAS",
@@ -328,6 +330,7 @@ _FALLBACK_DRAW_RATE: float = 0.25
 _FALLBACK_HOME_ADVANTAGE: float = 60.0
 
 REALISTIC_HOME_LAMBDA_BY_GROUP: Dict[str, float] = {
+    "EUROPE_CUP": 1.42,
     "EUROPE_TOP5": 1.55,
     "EUROPE_SECOND": 1.40,
     "EUROPE_OTHER": 1.45,
@@ -337,6 +340,7 @@ REALISTIC_HOME_LAMBDA_BY_GROUP: Dict[str, float] = {
 }
 
 REALISTIC_AWAY_LAMBDA_BY_GROUP: Dict[str, float] = {
+    "EUROPE_CUP": 1.18,
     "EUROPE_TOP5": 1.25,
     "EUROPE_SECOND": 1.15,
     "EUROPE_OTHER": 1.20,
@@ -346,6 +350,7 @@ REALISTIC_AWAY_LAMBDA_BY_GROUP: Dict[str, float] = {
 }
 
 REALISTIC_DRAW_RATE_BY_GROUP: Dict[str, float] = {
+    "EUROPE_CUP": 0.25,
     "EUROPE_TOP5": 0.24,
     "EUROPE_SECOND": 0.26,
     "EUROPE_OTHER": 0.25,
@@ -355,6 +360,7 @@ REALISTIC_DRAW_RATE_BY_GROUP: Dict[str, float] = {
 }
 
 REALISTIC_HOME_ADVANTAGE_BY_GROUP: Dict[str, float] = {
+    "EUROPE_CUP": 55.0,
     "EUROPE_TOP5": 60.0,
     "EUROPE_SECOND": 58.0,
     "EUROPE_OTHER": 60.0,
