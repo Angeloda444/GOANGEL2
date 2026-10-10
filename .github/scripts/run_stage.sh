@@ -6,6 +6,8 @@ if [ -z "${STAGE}" ]; then
   exit 2
 fi
 
+export GH_TOKEN="${GITHUB_TOKEN}"
+
 echo "═══════════════════════════════════════════════════════════"
 echo "  GOANGEL STAGE : ${STAGE}"
 echo "  Repo          : ${GITHUB_REPOSITORY}"
@@ -35,7 +37,7 @@ GOANGEL_GITHUB_PUSH=true
 GOANGEL_GITHUB_REPO=${GITHUB_REPOSITORY}
 GOANGEL_GITHUB_USER=${GITHUB_REPOSITORY_OWNER}
 GOANGEL_GITHUB_BRANCH=cache-auto
-GH_PAT=${GH_PAT}
+GH_PAT=${GITHUB_TOKEN}
 GOANGEL_MAX_ATTEMPTS_PER_MODEL=${MAX_ATTEMPTS}
 ENVEOF
 
@@ -44,7 +46,7 @@ if gh api "repos/${GITHUB_REPOSITORY}/branches/cache-auto" >/dev/null 2>&1; then
   echo "↻ Restauration cache-auto..."
   rm -rf /tmp/ckpt_restore
   git clone --depth 1 --branch cache-auto \
-    "https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git" \
+    "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
     /tmp/ckpt_restore 2>/dev/null
   if [ -d /tmp/ckpt_restore/cache ]; then
     cp -r /tmp/ckpt_restore/cache/. cache/ 2>/dev/null || true
@@ -82,7 +84,7 @@ echo "🏁 Stage ${STAGE} terminé RC=${RC} en ${DURATION}s"
 
 echo "↻ Push cache-auto..."
 cd /tmp && rm -rf gopush
-git clone "https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}.git" gopush 2>/dev/null
+git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gopush 2>/dev/null
 cd gopush
 git config user.email "actions@users.noreply.github.com"
 git config user.name "GOANGEL Auto"

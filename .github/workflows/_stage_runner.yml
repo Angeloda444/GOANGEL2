@@ -45,6 +45,20 @@ jobs:
           python-version: "3.12"
           cache: pip
 
+      - name: Verify secrets
+        env:
+          TOKENS: ${{ secrets.BZZOIRO_TOKENS }}
+        run: |
+          if [ -z "${GH_PAT}" ]; then
+            echo "::error::GH_PAT secret manquant ou vide"
+            exit 1
+          fi
+          if [ -z "${TOKENS}" ]; then
+            echo "::error::BZZOIRO_TOKENS secret manquant ou vide"
+            exit 1
+          fi
+          echo "✅ Secrets presents (GH_PAT len=${#GH_PAT}, tokens len=${#TOKENS})"
+
       - name: Run stage
         env:
           STAGE: ${{ inputs.stage }}
@@ -56,7 +70,7 @@ jobs:
           ENRICH: ${{ inputs.enrich_xg }}
           MAX_ATTEMPTS: ${{ inputs.max_attempts_per_model }}
           IS_RETRY: ${{ inputs.is_retry }}
-          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/run_stage.sh
 
       - uses: actions/upload-artifact@v4

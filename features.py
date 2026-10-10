@@ -170,6 +170,78 @@ FEATURE_NAMES: List[str] = [
     "away_pass_acc_5",
     "home_big_chances_5",
     "away_big_chances_5",
+    "home_offsides_5",
+    "away_offsides_5",
+    "home_throw_ins_5",
+    "away_throw_ins_5",
+    "home_free_kicks_5",
+    "away_free_kicks_5",
+    "home_goal_kicks_5",
+    "away_goal_kicks_5",
+    "home_high_claims_5",
+    "away_high_claims_5",
+    "home_total_saves_5",
+    "away_total_saves_5",
+    "home_big_saves_5",
+    "away_big_saves_5",
+    "home_punches_5",
+    "away_punches_5",
+    "home_dispossessed_5",
+    "away_dispossessed_5",
+    "home_hit_woodwork_5",
+    "away_hit_woodwork_5",
+    "home_through_balls_5",
+    "away_through_balls_5",
+    "home_total_tackles_5",
+    "away_total_tackles_5",
+    "home_tackles_5",
+    "away_tackles_5",
+    "home_passes_5",
+    "away_passes_5",
+    "home_accurate_passes_5",
+    "away_accurate_passes_5",
+    "home_shots_off_target_5",
+    "away_shots_off_target_5",
+    "home_shots_outside_box_5",
+    "away_shots_outside_box_5",
+    "home_number_of_sprints_5",
+    "away_number_of_sprints_5",
+    "home_attack_5",
+    "away_attack_5",
+    "home_ball_safe_5",
+    "away_ball_safe_5",
+    "home_attack_pct_5",
+    "away_attack_pct_5",
+    "home_ball_safe_pct_5",
+    "away_ball_safe_pct_5",
+    "home_errors_lead_to_shot_5",
+    "away_errors_lead_to_shot_5",
+    "home_fouled_final_third_5",
+    "away_fouled_final_third_5",
+    "home_crosses_value_5",
+    "away_crosses_value_5",
+    "home_crosses_total_5",
+    "away_crosses_total_5",
+    "home_long_balls_value_5",
+    "away_long_balls_value_5",
+    "home_long_balls_total_5",
+    "away_long_balls_total_5",
+    "home_dribbles_value_5",
+    "away_dribbles_value_5",
+    "home_dribbles_total_5",
+    "away_dribbles_total_5",
+    "home_aerial_duels_value_5",
+    "away_aerial_duels_value_5",
+    "home_aerial_duels_total_5",
+    "away_aerial_duels_total_5",
+    "home_ground_duels_value_5",
+    "away_ground_duels_value_5",
+    "home_ground_duels_total_5",
+    "away_ground_duels_total_5",
+    "home_final_third_value_5",
+    "away_final_third_value_5",
+    "home_final_third_pct_5",
+    "away_final_third_pct_5",
     "home_duels_5",
     "away_duels_5",
     "home_aerial_pct_5",
@@ -260,6 +332,42 @@ _NON_NEGATIVE_FEATURES: Tuple[str, ...] = (
     "home_fouls_5", "away_fouls_5",
     "home_pass_acc_5", "away_pass_acc_5",
     "home_big_chances_5", "away_big_chances_5",
+    "home_offsides_5", "away_offsides_5",
+    "home_throw_ins_5", "away_throw_ins_5",
+    "home_free_kicks_5", "away_free_kicks_5",
+    "home_goal_kicks_5", "away_goal_kicks_5",
+    "home_high_claims_5", "away_high_claims_5",
+    "home_total_saves_5", "away_total_saves_5",
+    "home_big_saves_5", "away_big_saves_5",
+    "home_punches_5", "away_punches_5",
+    "home_dispossessed_5", "away_dispossessed_5",
+    "home_hit_woodwork_5", "away_hit_woodwork_5",
+    "home_through_balls_5", "away_through_balls_5",
+    "home_total_tackles_5", "away_total_tackles_5",
+    "home_tackles_5", "away_tackles_5",
+    "home_passes_5", "away_passes_5",
+    "home_accurate_passes_5", "away_accurate_passes_5",
+    "home_shots_off_target_5", "away_shots_off_target_5",
+    "home_shots_outside_box_5", "away_shots_outside_box_5",
+    "home_number_of_sprints_5", "away_number_of_sprints_5",
+    "home_attack_5", "away_attack_5",
+    "home_ball_safe_5", "away_ball_safe_5",
+    "home_attack_pct_5", "away_attack_pct_5",
+    "home_ball_safe_pct_5", "away_ball_safe_pct_5",
+    "home_errors_lead_to_shot_5", "away_errors_lead_to_shot_5",
+    "home_fouled_final_third_5", "away_fouled_final_third_5",
+    "home_crosses_value_5", "away_crosses_value_5",
+    "home_crosses_total_5", "away_crosses_total_5",
+    "home_long_balls_value_5", "away_long_balls_value_5",
+    "home_long_balls_total_5", "away_long_balls_total_5",
+    "home_dribbles_value_5", "away_dribbles_value_5",
+    "home_dribbles_total_5", "away_dribbles_total_5",
+    "home_aerial_duels_value_5", "away_aerial_duels_value_5",
+    "home_aerial_duels_total_5", "away_aerial_duels_total_5",
+    "home_ground_duels_value_5", "away_ground_duels_value_5",
+    "home_ground_duels_total_5", "away_ground_duels_total_5",
+    "home_final_third_value_5", "away_final_third_value_5",
+    "home_final_third_pct_5", "away_final_third_pct_5",
     "home_duels_5", "away_duels_5",
     "home_aerial_pct_5", "away_aerial_pct_5",
     "home_ground_pct_5", "away_ground_pct_5",
@@ -614,6 +722,42 @@ _STAT_EXTRACT_KEYS: Tuple[Tuple[str, str], ...] = (
     ("big_scored", "home_big_scored"),
     ("red", "home_red_cards"),
     ("xg_target", "home_xg_target"),
+    ("offsides", "home_offsides"),
+    ("throw_ins", "home_throw_ins"),
+    ("free_kicks", "home_free_kicks"),
+    ("goal_kicks", "home_goal_kicks"),
+    ("high_claims", "home_high_claims"),
+    ("total_saves", "home_total_saves"),
+    ("big_saves", "home_big_saves"),
+    ("punches", "home_punches"),
+    ("dispossessed", "home_dispossessed"),
+    ("hit_woodwork", "home_hit_woodwork"),
+    ("through_balls", "home_through_balls"),
+    ("total_tackles", "home_total_tackles"),
+    ("tackles", "home_tackles"),
+    ("passes", "home_passes"),
+    ("accurate_passes", "home_accurate_passes"),
+    ("shots_off_target", "home_shots_off_target"),
+    ("shots_outside_box", "home_shots_outside_box"),
+    ("number_of_sprints", "home_number_of_sprints"),
+    ("attack", "home_attack"),
+    ("ball_safe", "home_ball_safe"),
+    ("attack_pct", "home_attack_pct"),
+    ("ball_safe_pct", "home_ball_safe_pct"),
+    ("errors_lead_to_shot", "home_errors_lead_to_shot"),
+    ("fouled_final_third", "home_fouled_final_third"),
+    ("crosses_value", "home_crosses_value"),
+    ("crosses_total", "home_crosses_total"),
+    ("long_balls_value", "home_long_balls_value"),
+    ("long_balls_total", "home_long_balls_total"),
+    ("dribbles_value", "home_dribbles_value"),
+    ("dribbles_total", "home_dribbles_total"),
+    ("aerial_duels_value", "home_aerial_duels_value"),
+    ("aerial_duels_total", "home_aerial_duels_total"),
+    ("ground_duels_value", "home_ground_duels_value"),
+    ("ground_duels_total", "home_ground_duels_total"),
+    ("final_third_value", "home_final_third_value"),
+    ("final_third_pct", "home_final_third_pct"),
 )
 
 _STAT_EXTRACT_KEYS_AWAY: Tuple[Tuple[str, str], ...] = tuple(
@@ -937,6 +1081,42 @@ class TeamHistoryTracker:
         self.stat_big_scored: Dict[Tuple[str, str], List[float]] = {}
         self.stat_red: Dict[Tuple[str, str], List[float]] = {}
         self.stat_xg_target: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_offsides: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_throw_ins: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_free_kicks: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_goal_kicks: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_high_claims: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_total_saves: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_big_saves: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_punches: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_dispossessed: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_hit_woodwork: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_through_balls: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_total_tackles: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_tackles: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_passes: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_accurate_passes: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_shots_off_target: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_shots_outside_box: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_number_of_sprints: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_attack: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_ball_safe: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_attack_pct: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_ball_safe_pct: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_errors_lead_to_shot: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_fouled_final_third: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_crosses_value: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_crosses_total: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_long_balls_value: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_long_balls_total: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_dribbles_value: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_dribbles_total: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_aerial_duels_value: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_aerial_duels_total: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_ground_duels_value: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_ground_duels_total: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_final_third_value: Dict[Tuple[str, str], List[float]] = {}
+        self.stat_final_third_pct: Dict[Tuple[str, str], List[float]] = {}
         self.h2h: Dict[
             Tuple[str, str],
             List[Tuple[int, int, Optional[pd.Timestamp], Optional[str]]],
@@ -993,6 +1173,42 @@ class TeamHistoryTracker:
         self.stat_big_scored[key] = []
         self.stat_red[key] = []
         self.stat_xg_target[key] = []
+        self.stat_offsides[key] = []
+        self.stat_throw_ins[key] = []
+        self.stat_free_kicks[key] = []
+        self.stat_goal_kicks[key] = []
+        self.stat_high_claims[key] = []
+        self.stat_total_saves[key] = []
+        self.stat_big_saves[key] = []
+        self.stat_punches[key] = []
+        self.stat_dispossessed[key] = []
+        self.stat_hit_woodwork[key] = []
+        self.stat_through_balls[key] = []
+        self.stat_total_tackles[key] = []
+        self.stat_tackles[key] = []
+        self.stat_passes[key] = []
+        self.stat_accurate_passes[key] = []
+        self.stat_shots_off_target[key] = []
+        self.stat_shots_outside_box[key] = []
+        self.stat_number_of_sprints[key] = []
+        self.stat_attack[key] = []
+        self.stat_ball_safe[key] = []
+        self.stat_attack_pct[key] = []
+        self.stat_ball_safe_pct[key] = []
+        self.stat_errors_lead_to_shot[key] = []
+        self.stat_fouled_final_third[key] = []
+        self.stat_crosses_value[key] = []
+        self.stat_crosses_total[key] = []
+        self.stat_long_balls_value[key] = []
+        self.stat_long_balls_total[key] = []
+        self.stat_dribbles_value[key] = []
+        self.stat_dribbles_total[key] = []
+        self.stat_aerial_duels_value[key] = []
+        self.stat_aerial_duels_total[key] = []
+        self.stat_ground_duels_value[key] = []
+        self.stat_ground_duels_total[key] = []
+        self.stat_final_third_value[key] = []
+        self.stat_final_third_pct[key] = []
 
     def _ensure(self, team: str, competition_code: Optional[str] = None) -> None:
         comp = _comp_key(competition_code)
@@ -1066,6 +1282,42 @@ class TeamHistoryTracker:
             "stat_big_scored": self.stat_big_scored.get(key, []),
             "stat_red": self.stat_red.get(key, []),
             "stat_xg_target": self.stat_xg_target.get(key, []),
+            "stat_offsides": self.stat_offsides.get(key, []),
+            "stat_throw_ins": self.stat_throw_ins.get(key, []),
+            "stat_free_kicks": self.stat_free_kicks.get(key, []),
+            "stat_goal_kicks": self.stat_goal_kicks.get(key, []),
+            "stat_high_claims": self.stat_high_claims.get(key, []),
+            "stat_total_saves": self.stat_total_saves.get(key, []),
+            "stat_big_saves": self.stat_big_saves.get(key, []),
+            "stat_punches": self.stat_punches.get(key, []),
+            "stat_dispossessed": self.stat_dispossessed.get(key, []),
+            "stat_hit_woodwork": self.stat_hit_woodwork.get(key, []),
+            "stat_through_balls": self.stat_through_balls.get(key, []),
+            "stat_total_tackles": self.stat_total_tackles.get(key, []),
+            "stat_tackles": self.stat_tackles.get(key, []),
+            "stat_passes": self.stat_passes.get(key, []),
+            "stat_accurate_passes": self.stat_accurate_passes.get(key, []),
+            "stat_shots_off_target": self.stat_shots_off_target.get(key, []),
+            "stat_shots_outside_box": self.stat_shots_outside_box.get(key, []),
+            "stat_number_of_sprints": self.stat_number_of_sprints.get(key, []),
+            "stat_attack": self.stat_attack.get(key, []),
+            "stat_ball_safe": self.stat_ball_safe.get(key, []),
+            "stat_attack_pct": self.stat_attack_pct.get(key, []),
+            "stat_ball_safe_pct": self.stat_ball_safe_pct.get(key, []),
+            "stat_errors_lead_to_shot": self.stat_errors_lead_to_shot.get(key, []),
+            "stat_fouled_final_third": self.stat_fouled_final_third.get(key, []),
+            "stat_crosses_value": self.stat_crosses_value.get(key, []),
+            "stat_crosses_total": self.stat_crosses_total.get(key, []),
+            "stat_long_balls_value": self.stat_long_balls_value.get(key, []),
+            "stat_long_balls_total": self.stat_long_balls_total.get(key, []),
+            "stat_dribbles_value": self.stat_dribbles_value.get(key, []),
+            "stat_dribbles_total": self.stat_dribbles_total.get(key, []),
+            "stat_aerial_duels_value": self.stat_aerial_duels_value.get(key, []),
+            "stat_aerial_duels_total": self.stat_aerial_duels_total.get(key, []),
+            "stat_ground_duels_value": self.stat_ground_duels_value.get(key, []),
+            "stat_ground_duels_total": self.stat_ground_duels_total.get(key, []),
+            "stat_final_third_value": self.stat_final_third_value.get(key, []),
+            "stat_final_third_pct": self.stat_final_third_pct.get(key, []),
         }
 
     def head_to_head(
@@ -1195,6 +1447,78 @@ class TeamHistoryTracker:
         away_red: Optional[float] = None,
         home_xg_target: Optional[float] = None,
         away_xg_target: Optional[float] = None,
+        home_offsides: Optional[float] = None,
+        away_offsides: Optional[float] = None,
+        home_throw_ins: Optional[float] = None,
+        away_throw_ins: Optional[float] = None,
+        home_free_kicks: Optional[float] = None,
+        away_free_kicks: Optional[float] = None,
+        home_goal_kicks: Optional[float] = None,
+        away_goal_kicks: Optional[float] = None,
+        home_high_claims: Optional[float] = None,
+        away_high_claims: Optional[float] = None,
+        home_total_saves: Optional[float] = None,
+        away_total_saves: Optional[float] = None,
+        home_big_saves: Optional[float] = None,
+        away_big_saves: Optional[float] = None,
+        home_punches: Optional[float] = None,
+        away_punches: Optional[float] = None,
+        home_dispossessed: Optional[float] = None,
+        away_dispossessed: Optional[float] = None,
+        home_hit_woodwork: Optional[float] = None,
+        away_hit_woodwork: Optional[float] = None,
+        home_through_balls: Optional[float] = None,
+        away_through_balls: Optional[float] = None,
+        home_total_tackles: Optional[float] = None,
+        away_total_tackles: Optional[float] = None,
+        home_tackles: Optional[float] = None,
+        away_tackles: Optional[float] = None,
+        home_passes: Optional[float] = None,
+        away_passes: Optional[float] = None,
+        home_accurate_passes: Optional[float] = None,
+        away_accurate_passes: Optional[float] = None,
+        home_shots_off_target: Optional[float] = None,
+        away_shots_off_target: Optional[float] = None,
+        home_shots_outside_box: Optional[float] = None,
+        away_shots_outside_box: Optional[float] = None,
+        home_number_of_sprints: Optional[float] = None,
+        away_number_of_sprints: Optional[float] = None,
+        home_attack: Optional[float] = None,
+        away_attack: Optional[float] = None,
+        home_ball_safe: Optional[float] = None,
+        away_ball_safe: Optional[float] = None,
+        home_attack_pct: Optional[float] = None,
+        away_attack_pct: Optional[float] = None,
+        home_ball_safe_pct: Optional[float] = None,
+        away_ball_safe_pct: Optional[float] = None,
+        home_errors_lead_to_shot: Optional[float] = None,
+        away_errors_lead_to_shot: Optional[float] = None,
+        home_fouled_final_third: Optional[float] = None,
+        away_fouled_final_third: Optional[float] = None,
+        home_crosses_value: Optional[float] = None,
+        away_crosses_value: Optional[float] = None,
+        home_crosses_total: Optional[float] = None,
+        away_crosses_total: Optional[float] = None,
+        home_long_balls_value: Optional[float] = None,
+        away_long_balls_value: Optional[float] = None,
+        home_long_balls_total: Optional[float] = None,
+        away_long_balls_total: Optional[float] = None,
+        home_dribbles_value: Optional[float] = None,
+        away_dribbles_value: Optional[float] = None,
+        home_dribbles_total: Optional[float] = None,
+        away_dribbles_total: Optional[float] = None,
+        home_aerial_duels_value: Optional[float] = None,
+        away_aerial_duels_value: Optional[float] = None,
+        home_aerial_duels_total: Optional[float] = None,
+        away_aerial_duels_total: Optional[float] = None,
+        home_ground_duels_value: Optional[float] = None,
+        away_ground_duels_value: Optional[float] = None,
+        home_ground_duels_total: Optional[float] = None,
+        away_ground_duels_total: Optional[float] = None,
+        home_final_third_value: Optional[float] = None,
+        away_final_third_value: Optional[float] = None,
+        home_final_third_pct: Optional[float] = None,
+        away_final_third_pct: Optional[float] = None,
     ) -> None:
         comp = _comp_key(competition_code)
         home_key = (comp, home)
@@ -1276,6 +1600,42 @@ class TeamHistoryTracker:
             (home_big_scored, self.stat_big_scored),
             (home_red, self.stat_red),
             (home_xg_target, self.stat_xg_target),
+            (home_offsides, self.stat_offsides),
+            (home_throw_ins, self.stat_throw_ins),
+            (home_free_kicks, self.stat_free_kicks),
+            (home_goal_kicks, self.stat_goal_kicks),
+            (home_high_claims, self.stat_high_claims),
+            (home_total_saves, self.stat_total_saves),
+            (home_big_saves, self.stat_big_saves),
+            (home_punches, self.stat_punches),
+            (home_dispossessed, self.stat_dispossessed),
+            (home_hit_woodwork, self.stat_hit_woodwork),
+            (home_through_balls, self.stat_through_balls),
+            (home_total_tackles, self.stat_total_tackles),
+            (home_tackles, self.stat_tackles),
+            (home_passes, self.stat_passes),
+            (home_accurate_passes, self.stat_accurate_passes),
+            (home_shots_off_target, self.stat_shots_off_target),
+            (home_shots_outside_box, self.stat_shots_outside_box),
+            (home_number_of_sprints, self.stat_number_of_sprints),
+            (home_attack, self.stat_attack),
+            (home_ball_safe, self.stat_ball_safe),
+            (home_attack_pct, self.stat_attack_pct),
+            (home_ball_safe_pct, self.stat_ball_safe_pct),
+            (home_errors_lead_to_shot, self.stat_errors_lead_to_shot),
+            (home_fouled_final_third, self.stat_fouled_final_third),
+            (home_crosses_value, self.stat_crosses_value),
+            (home_crosses_total, self.stat_crosses_total),
+            (home_long_balls_value, self.stat_long_balls_value),
+            (home_long_balls_total, self.stat_long_balls_total),
+            (home_dribbles_value, self.stat_dribbles_value),
+            (home_dribbles_total, self.stat_dribbles_total),
+            (home_aerial_duels_value, self.stat_aerial_duels_value),
+            (home_aerial_duels_total, self.stat_aerial_duels_total),
+            (home_ground_duels_value, self.stat_ground_duels_value),
+            (home_ground_duels_total, self.stat_ground_duels_total),
+            (home_final_third_value, self.stat_final_third_value),
+            (home_final_third_pct, self.stat_final_third_pct),
         ]
 
         away_stats_map: List[Tuple[Optional[float], List[float]]] = [
@@ -1307,6 +1667,42 @@ class TeamHistoryTracker:
             (away_big_scored, self.stat_big_scored),
             (away_red, self.stat_red),
             (away_xg_target, self.stat_xg_target),
+            (away_offsides, self.stat_offsides),
+            (away_throw_ins, self.stat_throw_ins),
+            (away_free_kicks, self.stat_free_kicks),
+            (away_goal_kicks, self.stat_goal_kicks),
+            (away_high_claims, self.stat_high_claims),
+            (away_total_saves, self.stat_total_saves),
+            (away_big_saves, self.stat_big_saves),
+            (away_punches, self.stat_punches),
+            (away_dispossessed, self.stat_dispossessed),
+            (away_hit_woodwork, self.stat_hit_woodwork),
+            (away_through_balls, self.stat_through_balls),
+            (away_total_tackles, self.stat_total_tackles),
+            (away_tackles, self.stat_tackles),
+            (away_passes, self.stat_passes),
+            (away_accurate_passes, self.stat_accurate_passes),
+            (away_shots_off_target, self.stat_shots_off_target),
+            (away_shots_outside_box, self.stat_shots_outside_box),
+            (away_number_of_sprints, self.stat_number_of_sprints),
+            (away_attack, self.stat_attack),
+            (away_ball_safe, self.stat_ball_safe),
+            (away_attack_pct, self.stat_attack_pct),
+            (away_ball_safe_pct, self.stat_ball_safe_pct),
+            (away_errors_lead_to_shot, self.stat_errors_lead_to_shot),
+            (away_fouled_final_third, self.stat_fouled_final_third),
+            (away_crosses_value, self.stat_crosses_value),
+            (away_crosses_total, self.stat_crosses_total),
+            (away_long_balls_value, self.stat_long_balls_value),
+            (away_long_balls_total, self.stat_long_balls_total),
+            (away_dribbles_value, self.stat_dribbles_value),
+            (away_dribbles_total, self.stat_dribbles_total),
+            (away_aerial_duels_value, self.stat_aerial_duels_value),
+            (away_aerial_duels_total, self.stat_aerial_duels_total),
+            (away_ground_duels_value, self.stat_ground_duels_value),
+            (away_ground_duels_total, self.stat_ground_duels_total),
+            (away_final_third_value, self.stat_final_third_value),
+            (away_final_third_pct, self.stat_final_third_pct),
         ]
 
         for key, is_home_slot in target_keys:
@@ -1585,6 +1981,79 @@ def build_feature_vector(
     home_xg_target_5 = _safe_mean(home_hist.get("stat_xg_target", []), FORM_WINDOW_SHORT, _NAN)
     away_xg_target_5 = _safe_mean(away_hist.get("stat_xg_target", []), FORM_WINDOW_SHORT, _NAN)
 
+    home_offsides_5 = _safe_mean(home_hist.get("stat_offsides", []), FORM_WINDOW_SHORT, _NAN)
+    away_offsides_5 = _safe_mean(away_hist.get("stat_offsides", []), FORM_WINDOW_SHORT, _NAN)
+    home_throw_ins_5 = _safe_mean(home_hist.get("stat_throw_ins", []), FORM_WINDOW_SHORT, _NAN)
+    away_throw_ins_5 = _safe_mean(away_hist.get("stat_throw_ins", []), FORM_WINDOW_SHORT, _NAN)
+    home_free_kicks_5 = _safe_mean(home_hist.get("stat_free_kicks", []), FORM_WINDOW_SHORT, _NAN)
+    away_free_kicks_5 = _safe_mean(away_hist.get("stat_free_kicks", []), FORM_WINDOW_SHORT, _NAN)
+    home_goal_kicks_5 = _safe_mean(home_hist.get("stat_goal_kicks", []), FORM_WINDOW_SHORT, _NAN)
+    away_goal_kicks_5 = _safe_mean(away_hist.get("stat_goal_kicks", []), FORM_WINDOW_SHORT, _NAN)
+    home_high_claims_5 = _safe_mean(home_hist.get("stat_high_claims", []), FORM_WINDOW_SHORT, _NAN)
+    away_high_claims_5 = _safe_mean(away_hist.get("stat_high_claims", []), FORM_WINDOW_SHORT, _NAN)
+    home_total_saves_5 = _safe_mean(home_hist.get("stat_total_saves", []), FORM_WINDOW_SHORT, _NAN)
+    away_total_saves_5 = _safe_mean(away_hist.get("stat_total_saves", []), FORM_WINDOW_SHORT, _NAN)
+    home_big_saves_5 = _safe_mean(home_hist.get("stat_big_saves", []), FORM_WINDOW_SHORT, _NAN)
+    away_big_saves_5 = _safe_mean(away_hist.get("stat_big_saves", []), FORM_WINDOW_SHORT, _NAN)
+    home_punches_5 = _safe_mean(home_hist.get("stat_punches", []), FORM_WINDOW_SHORT, _NAN)
+    away_punches_5 = _safe_mean(away_hist.get("stat_punches", []), FORM_WINDOW_SHORT, _NAN)
+    home_dispossessed_5 = _safe_mean(home_hist.get("stat_dispossessed", []), FORM_WINDOW_SHORT, _NAN)
+    away_dispossessed_5 = _safe_mean(away_hist.get("stat_dispossessed", []), FORM_WINDOW_SHORT, _NAN)
+    home_hit_woodwork_5 = _safe_mean(home_hist.get("stat_hit_woodwork", []), FORM_WINDOW_SHORT, _NAN)
+    away_hit_woodwork_5 = _safe_mean(away_hist.get("stat_hit_woodwork", []), FORM_WINDOW_SHORT, _NAN)
+    home_through_balls_5 = _safe_mean(home_hist.get("stat_through_balls", []), FORM_WINDOW_SHORT, _NAN)
+    away_through_balls_5 = _safe_mean(away_hist.get("stat_through_balls", []), FORM_WINDOW_SHORT, _NAN)
+    home_total_tackles_5 = _safe_mean(home_hist.get("stat_total_tackles", []), FORM_WINDOW_SHORT, _NAN)
+    away_total_tackles_5 = _safe_mean(away_hist.get("stat_total_tackles", []), FORM_WINDOW_SHORT, _NAN)
+    home_tackles_5 = _safe_mean(home_hist.get("stat_tackles", []), FORM_WINDOW_SHORT, _NAN)
+    away_tackles_5 = _safe_mean(away_hist.get("stat_tackles", []), FORM_WINDOW_SHORT, _NAN)
+    home_passes_5 = _safe_mean(home_hist.get("stat_passes", []), FORM_WINDOW_SHORT, _NAN)
+    away_passes_5 = _safe_mean(away_hist.get("stat_passes", []), FORM_WINDOW_SHORT, _NAN)
+    home_accurate_passes_5 = _safe_mean(home_hist.get("stat_accurate_passes", []), FORM_WINDOW_SHORT, _NAN)
+    away_accurate_passes_5 = _safe_mean(away_hist.get("stat_accurate_passes", []), FORM_WINDOW_SHORT, _NAN)
+    home_shots_off_target_5 = _safe_mean(home_hist.get("stat_shots_off_target", []), FORM_WINDOW_SHORT, _NAN)
+    away_shots_off_target_5 = _safe_mean(away_hist.get("stat_shots_off_target", []), FORM_WINDOW_SHORT, _NAN)
+    home_shots_outside_box_5 = _safe_mean(home_hist.get("stat_shots_outside_box", []), FORM_WINDOW_SHORT, _NAN)
+    away_shots_outside_box_5 = _safe_mean(away_hist.get("stat_shots_outside_box", []), FORM_WINDOW_SHORT, _NAN)
+    home_number_of_sprints_5 = _safe_mean(home_hist.get("stat_number_of_sprints", []), FORM_WINDOW_SHORT, _NAN)
+    away_number_of_sprints_5 = _safe_mean(away_hist.get("stat_number_of_sprints", []), FORM_WINDOW_SHORT, _NAN)
+    home_attack_5 = _safe_mean(home_hist.get("stat_attack", []), FORM_WINDOW_SHORT, _NAN)
+    away_attack_5 = _safe_mean(away_hist.get("stat_attack", []), FORM_WINDOW_SHORT, _NAN)
+    home_ball_safe_5 = _safe_mean(home_hist.get("stat_ball_safe", []), FORM_WINDOW_SHORT, _NAN)
+    away_ball_safe_5 = _safe_mean(away_hist.get("stat_ball_safe", []), FORM_WINDOW_SHORT, _NAN)
+    home_attack_pct_5 = _safe_mean(home_hist.get("stat_attack_pct", []), FORM_WINDOW_SHORT, _NAN)
+    away_attack_pct_5 = _safe_mean(away_hist.get("stat_attack_pct", []), FORM_WINDOW_SHORT, _NAN)
+    home_ball_safe_pct_5 = _safe_mean(home_hist.get("stat_ball_safe_pct", []), FORM_WINDOW_SHORT, _NAN)
+    away_ball_safe_pct_5 = _safe_mean(away_hist.get("stat_ball_safe_pct", []), FORM_WINDOW_SHORT, _NAN)
+    home_errors_lead_to_shot_5 = _safe_mean(home_hist.get("stat_errors_lead_to_shot", []), FORM_WINDOW_SHORT, _NAN)
+    away_errors_lead_to_shot_5 = _safe_mean(away_hist.get("stat_errors_lead_to_shot", []), FORM_WINDOW_SHORT, _NAN)
+    home_fouled_final_third_5 = _safe_mean(home_hist.get("stat_fouled_final_third", []), FORM_WINDOW_SHORT, _NAN)
+    away_fouled_final_third_5 = _safe_mean(away_hist.get("stat_fouled_final_third", []), FORM_WINDOW_SHORT, _NAN)
+    home_crosses_value_5 = _safe_mean(home_hist.get("stat_crosses_value", []), FORM_WINDOW_SHORT, _NAN)
+    away_crosses_value_5 = _safe_mean(away_hist.get("stat_crosses_value", []), FORM_WINDOW_SHORT, _NAN)
+    home_crosses_total_5 = _safe_mean(home_hist.get("stat_crosses_total", []), FORM_WINDOW_SHORT, _NAN)
+    away_crosses_total_5 = _safe_mean(away_hist.get("stat_crosses_total", []), FORM_WINDOW_SHORT, _NAN)
+    home_long_balls_value_5 = _safe_mean(home_hist.get("stat_long_balls_value", []), FORM_WINDOW_SHORT, _NAN)
+    away_long_balls_value_5 = _safe_mean(away_hist.get("stat_long_balls_value", []), FORM_WINDOW_SHORT, _NAN)
+    home_long_balls_total_5 = _safe_mean(home_hist.get("stat_long_balls_total", []), FORM_WINDOW_SHORT, _NAN)
+    away_long_balls_total_5 = _safe_mean(away_hist.get("stat_long_balls_total", []), FORM_WINDOW_SHORT, _NAN)
+    home_dribbles_value_5 = _safe_mean(home_hist.get("stat_dribbles_value", []), FORM_WINDOW_SHORT, _NAN)
+    away_dribbles_value_5 = _safe_mean(away_hist.get("stat_dribbles_value", []), FORM_WINDOW_SHORT, _NAN)
+    home_dribbles_total_5 = _safe_mean(home_hist.get("stat_dribbles_total", []), FORM_WINDOW_SHORT, _NAN)
+    away_dribbles_total_5 = _safe_mean(away_hist.get("stat_dribbles_total", []), FORM_WINDOW_SHORT, _NAN)
+    home_aerial_duels_value_5 = _safe_mean(home_hist.get("stat_aerial_duels_value", []), FORM_WINDOW_SHORT, _NAN)
+    away_aerial_duels_value_5 = _safe_mean(away_hist.get("stat_aerial_duels_value", []), FORM_WINDOW_SHORT, _NAN)
+    home_aerial_duels_total_5 = _safe_mean(home_hist.get("stat_aerial_duels_total", []), FORM_WINDOW_SHORT, _NAN)
+    away_aerial_duels_total_5 = _safe_mean(away_hist.get("stat_aerial_duels_total", []), FORM_WINDOW_SHORT, _NAN)
+    home_ground_duels_value_5 = _safe_mean(home_hist.get("stat_ground_duels_value", []), FORM_WINDOW_SHORT, _NAN)
+    away_ground_duels_value_5 = _safe_mean(away_hist.get("stat_ground_duels_value", []), FORM_WINDOW_SHORT, _NAN)
+    home_ground_duels_total_5 = _safe_mean(home_hist.get("stat_ground_duels_total", []), FORM_WINDOW_SHORT, _NAN)
+    away_ground_duels_total_5 = _safe_mean(away_hist.get("stat_ground_duels_total", []), FORM_WINDOW_SHORT, _NAN)
+    home_final_third_value_5 = _safe_mean(home_hist.get("stat_final_third_value", []), FORM_WINDOW_SHORT, _NAN)
+    away_final_third_value_5 = _safe_mean(away_hist.get("stat_final_third_value", []), FORM_WINDOW_SHORT, _NAN)
+    home_final_third_pct_5 = _safe_mean(home_hist.get("stat_final_third_pct", []), FORM_WINDOW_SHORT, _NAN)
+    away_final_third_pct_5 = _safe_mean(away_hist.get("stat_final_third_pct", []), FORM_WINDOW_SHORT, _NAN)
+
     home_home_gf = _safe_mean(home_hist["home_gf"], FORM_WINDOW_MEDIUM, dgf)
     home_home_ga = _safe_mean(home_hist["home_ga"], FORM_WINDOW_MEDIUM, dga)
     away_away_gf = _safe_mean(away_hist["away_gf"], FORM_WINDOW_MEDIUM, dgf)
@@ -1667,6 +2136,42 @@ def build_feature_vector(
         home_fouls_5, away_fouls_5,
         home_pass_acc_5, away_pass_acc_5,
         home_big_chances_5, away_big_chances_5,
+        home_offsides_5, away_offsides_5,
+        home_throw_ins_5, away_throw_ins_5,
+        home_free_kicks_5, away_free_kicks_5,
+        home_goal_kicks_5, away_goal_kicks_5,
+        home_high_claims_5, away_high_claims_5,
+        home_total_saves_5, away_total_saves_5,
+        home_big_saves_5, away_big_saves_5,
+        home_punches_5, away_punches_5,
+        home_dispossessed_5, away_dispossessed_5,
+        home_hit_woodwork_5, away_hit_woodwork_5,
+        home_through_balls_5, away_through_balls_5,
+        home_total_tackles_5, away_total_tackles_5,
+        home_tackles_5, away_tackles_5,
+        home_passes_5, away_passes_5,
+        home_accurate_passes_5, away_accurate_passes_5,
+        home_shots_off_target_5, away_shots_off_target_5,
+        home_shots_outside_box_5, away_shots_outside_box_5,
+        home_number_of_sprints_5, away_number_of_sprints_5,
+        home_attack_5, away_attack_5,
+        home_ball_safe_5, away_ball_safe_5,
+        home_attack_pct_5, away_attack_pct_5,
+        home_ball_safe_pct_5, away_ball_safe_pct_5,
+        home_errors_lead_to_shot_5, away_errors_lead_to_shot_5,
+        home_fouled_final_third_5, away_fouled_final_third_5,
+        home_crosses_value_5, away_crosses_value_5,
+        home_crosses_total_5, away_crosses_total_5,
+        home_long_balls_value_5, away_long_balls_value_5,
+        home_long_balls_total_5, away_long_balls_total_5,
+        home_dribbles_value_5, away_dribbles_value_5,
+        home_dribbles_total_5, away_dribbles_total_5,
+        home_aerial_duels_value_5, away_aerial_duels_value_5,
+        home_aerial_duels_total_5, away_aerial_duels_total_5,
+        home_ground_duels_value_5, away_ground_duels_value_5,
+        home_ground_duels_total_5, away_ground_duels_total_5,
+        home_final_third_value_5, away_final_third_value_5,
+        home_final_third_pct_5, away_final_third_pct_5,
         home_duels_5, away_duels_5,
         home_aerial_pct_5, away_aerial_pct_5,
         home_ground_pct_5, away_ground_pct_5,
@@ -1812,6 +2317,42 @@ def build_tracking_state(
             away_pass_acc=_f(row, "away_pass_accuracy_pct"),
             home_big_chances=_f(row, "home_big_chances"),
             away_big_chances=_f(row, "away_big_chances"),
+            home_offsides=_f(row, "home_offsides"), away_offsides=_f(row, "away_offsides"),
+            home_throw_ins=_f(row, "home_throw_ins"), away_throw_ins=_f(row, "away_throw_ins"),
+            home_free_kicks=_f(row, "home_free_kicks"), away_free_kicks=_f(row, "away_free_kicks"),
+            home_goal_kicks=_f(row, "home_goal_kicks"), away_goal_kicks=_f(row, "away_goal_kicks"),
+            home_high_claims=_f(row, "home_high_claims"), away_high_claims=_f(row, "away_high_claims"),
+            home_total_saves=_f(row, "home_total_saves"), away_total_saves=_f(row, "away_total_saves"),
+            home_big_saves=_f(row, "home_big_saves"), away_big_saves=_f(row, "away_big_saves"),
+            home_punches=_f(row, "home_punches"), away_punches=_f(row, "away_punches"),
+            home_dispossessed=_f(row, "home_dispossessed"), away_dispossessed=_f(row, "away_dispossessed"),
+            home_hit_woodwork=_f(row, "home_hit_woodwork"), away_hit_woodwork=_f(row, "away_hit_woodwork"),
+            home_through_balls=_f(row, "home_through_balls"), away_through_balls=_f(row, "away_through_balls"),
+            home_total_tackles=_f(row, "home_total_tackles"), away_total_tackles=_f(row, "away_total_tackles"),
+            home_tackles=_f(row, "home_tackles"), away_tackles=_f(row, "away_tackles"),
+            home_passes=_f(row, "home_passes"), away_passes=_f(row, "away_passes"),
+            home_accurate_passes=_f(row, "home_accurate_passes"), away_accurate_passes=_f(row, "away_accurate_passes"),
+            home_shots_off_target=_f(row, "home_shots_off_target"), away_shots_off_target=_f(row, "away_shots_off_target"),
+            home_shots_outside_box=_f(row, "home_shots_outside_box"), away_shots_outside_box=_f(row, "away_shots_outside_box"),
+            home_number_of_sprints=_f(row, "home_number_of_sprints"), away_number_of_sprints=_f(row, "away_number_of_sprints"),
+            home_attack=_f(row, "home_attack"), away_attack=_f(row, "away_attack"),
+            home_ball_safe=_f(row, "home_ball_safe"), away_ball_safe=_f(row, "away_ball_safe"),
+            home_attack_pct=_f(row, "home_attack_pct"), away_attack_pct=_f(row, "away_attack_pct"),
+            home_ball_safe_pct=_f(row, "home_ball_safe_pct"), away_ball_safe_pct=_f(row, "away_ball_safe_pct"),
+            home_errors_lead_to_shot=_f(row, "home_errors_lead_to_shot"), away_errors_lead_to_shot=_f(row, "away_errors_lead_to_shot"),
+            home_fouled_final_third=_f(row, "home_fouled_final_third"), away_fouled_final_third=_f(row, "away_fouled_final_third"),
+            home_crosses_value=_f(row, "home_crosses_value"), away_crosses_value=_f(row, "away_crosses_value"),
+            home_crosses_total=_f(row, "home_crosses_total"), away_crosses_total=_f(row, "away_crosses_total"),
+            home_long_balls_value=_f(row, "home_long_balls_value"), away_long_balls_value=_f(row, "away_long_balls_value"),
+            home_long_balls_total=_f(row, "home_long_balls_total"), away_long_balls_total=_f(row, "away_long_balls_total"),
+            home_dribbles_value=_f(row, "home_dribbles_value"), away_dribbles_value=_f(row, "away_dribbles_value"),
+            home_dribbles_total=_f(row, "home_dribbles_total"), away_dribbles_total=_f(row, "away_dribbles_total"),
+            home_aerial_duels_value=_f(row, "home_aerial_duels_value"), away_aerial_duels_value=_f(row, "away_aerial_duels_value"),
+            home_aerial_duels_total=_f(row, "home_aerial_duels_total"), away_aerial_duels_total=_f(row, "away_aerial_duels_total"),
+            home_ground_duels_value=_f(row, "home_ground_duels_value"), away_ground_duels_value=_f(row, "away_ground_duels_value"),
+            home_ground_duels_total=_f(row, "home_ground_duels_total"), away_ground_duels_total=_f(row, "away_ground_duels_total"),
+            home_final_third_value=_f(row, "home_final_third_value"), away_final_third_value=_f(row, "away_final_third_value"),
+            home_final_third_pct=_f(row, "home_final_third_pct"), away_final_third_pct=_f(row, "away_final_third_pct"),
             home_duels=_f(row, "home_duels"), away_duels=_f(row, "away_duels"),
             home_aerial_pct=_f(row, "home_aerial_pct"),
             away_aerial_pct=_f(row, "away_aerial_pct"),
@@ -1951,6 +2492,42 @@ def create_features_with_context(
             away_pass_acc=_f(row, "away_pass_accuracy_pct"),
             home_big_chances=_f(row, "home_big_chances"),
             away_big_chances=_f(row, "away_big_chances"),
+            home_offsides=_f(row, "home_offsides"), away_offsides=_f(row, "away_offsides"),
+            home_throw_ins=_f(row, "home_throw_ins"), away_throw_ins=_f(row, "away_throw_ins"),
+            home_free_kicks=_f(row, "home_free_kicks"), away_free_kicks=_f(row, "away_free_kicks"),
+            home_goal_kicks=_f(row, "home_goal_kicks"), away_goal_kicks=_f(row, "away_goal_kicks"),
+            home_high_claims=_f(row, "home_high_claims"), away_high_claims=_f(row, "away_high_claims"),
+            home_total_saves=_f(row, "home_total_saves"), away_total_saves=_f(row, "away_total_saves"),
+            home_big_saves=_f(row, "home_big_saves"), away_big_saves=_f(row, "away_big_saves"),
+            home_punches=_f(row, "home_punches"), away_punches=_f(row, "away_punches"),
+            home_dispossessed=_f(row, "home_dispossessed"), away_dispossessed=_f(row, "away_dispossessed"),
+            home_hit_woodwork=_f(row, "home_hit_woodwork"), away_hit_woodwork=_f(row, "away_hit_woodwork"),
+            home_through_balls=_f(row, "home_through_balls"), away_through_balls=_f(row, "away_through_balls"),
+            home_total_tackles=_f(row, "home_total_tackles"), away_total_tackles=_f(row, "away_total_tackles"),
+            home_tackles=_f(row, "home_tackles"), away_tackles=_f(row, "away_tackles"),
+            home_passes=_f(row, "home_passes"), away_passes=_f(row, "away_passes"),
+            home_accurate_passes=_f(row, "home_accurate_passes"), away_accurate_passes=_f(row, "away_accurate_passes"),
+            home_shots_off_target=_f(row, "home_shots_off_target"), away_shots_off_target=_f(row, "away_shots_off_target"),
+            home_shots_outside_box=_f(row, "home_shots_outside_box"), away_shots_outside_box=_f(row, "away_shots_outside_box"),
+            home_number_of_sprints=_f(row, "home_number_of_sprints"), away_number_of_sprints=_f(row, "away_number_of_sprints"),
+            home_attack=_f(row, "home_attack"), away_attack=_f(row, "away_attack"),
+            home_ball_safe=_f(row, "home_ball_safe"), away_ball_safe=_f(row, "away_ball_safe"),
+            home_attack_pct=_f(row, "home_attack_pct"), away_attack_pct=_f(row, "away_attack_pct"),
+            home_ball_safe_pct=_f(row, "home_ball_safe_pct"), away_ball_safe_pct=_f(row, "away_ball_safe_pct"),
+            home_errors_lead_to_shot=_f(row, "home_errors_lead_to_shot"), away_errors_lead_to_shot=_f(row, "away_errors_lead_to_shot"),
+            home_fouled_final_third=_f(row, "home_fouled_final_third"), away_fouled_final_third=_f(row, "away_fouled_final_third"),
+            home_crosses_value=_f(row, "home_crosses_value"), away_crosses_value=_f(row, "away_crosses_value"),
+            home_crosses_total=_f(row, "home_crosses_total"), away_crosses_total=_f(row, "away_crosses_total"),
+            home_long_balls_value=_f(row, "home_long_balls_value"), away_long_balls_value=_f(row, "away_long_balls_value"),
+            home_long_balls_total=_f(row, "home_long_balls_total"), away_long_balls_total=_f(row, "away_long_balls_total"),
+            home_dribbles_value=_f(row, "home_dribbles_value"), away_dribbles_value=_f(row, "away_dribbles_value"),
+            home_dribbles_total=_f(row, "home_dribbles_total"), away_dribbles_total=_f(row, "away_dribbles_total"),
+            home_aerial_duels_value=_f(row, "home_aerial_duels_value"), away_aerial_duels_value=_f(row, "away_aerial_duels_value"),
+            home_aerial_duels_total=_f(row, "home_aerial_duels_total"), away_aerial_duels_total=_f(row, "away_aerial_duels_total"),
+            home_ground_duels_value=_f(row, "home_ground_duels_value"), away_ground_duels_value=_f(row, "away_ground_duels_value"),
+            home_ground_duels_total=_f(row, "home_ground_duels_total"), away_ground_duels_total=_f(row, "away_ground_duels_total"),
+            home_final_third_value=_f(row, "home_final_third_value"), away_final_third_value=_f(row, "away_final_third_value"),
+            home_final_third_pct=_f(row, "home_final_third_pct"), away_final_third_pct=_f(row, "away_final_third_pct"),
             home_duels=_f(row, "home_duels"), away_duels=_f(row, "away_duels"),
             home_aerial_pct=_f(row, "home_aerial_pct"),
             away_aerial_pct=_f(row, "away_aerial_pct"),
