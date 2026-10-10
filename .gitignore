@@ -4,16 +4,25 @@ __pycache__/
 *.pyo
 *.pyd
 
+# Autres dossiers ignorés (checkpoints, cache Python)
 checkpoints/
 .cache/
-*.pkl
-*.pkl.xz
-*.log
-*.tmp
+
+# Fichiers ML temporaires À LA RACINE UNIQUEMENT (pas dans cache/)
+/*.pkl
+/*.pkl.xz
+/*.log
+/*.tmp
+
+# Backups (partout)
 *.bak
 *.bak_*
 .env.bak
 .env.bak_*
+
+# Logs dans cache (le reste de cache/ est versionné)
+cache/*.log
+cache/**/*.log
 
 .DS_Store
 Thumbs.db
@@ -27,4 +36,3 @@ env/
 .lfsconfig
 .gitattributes
 .env
-cache/*.log
