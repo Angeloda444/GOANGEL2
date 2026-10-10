@@ -4,7 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-cache/
 checkpoints/
 .cache/
 *.pkl
@@ -28,4 +27,4 @@ env/
 .lfsconfig
 .gitattributes
 .env
-cache/stages/
+cache/*.log

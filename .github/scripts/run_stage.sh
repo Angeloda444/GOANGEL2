@@ -93,7 +93,26 @@ mkdir -p cache
 if [ -d "${GITHUB_WORKSPACE}/cache" ]; then
   cp -r "${GITHUB_WORKSPACE}/cache/." cache/ 2>/dev/null || true
 fi
-git add -A
+git add -f -A
+
+if [ -d cache ]; then
+  git add -f cache/ 2>/dev/null || true
+fi
+if [ -d cache/stages ]; then
+  git add -f cache/stages/ 2>/dev/null || true
+  git add -f cache/stages/done/ 2>/dev/null || true
+  git add -f cache/stages/attempts/ 2>/dev/null || true
+  git add -f cache/stages/models/ 2>/dev/null || true
+  git add -f cache/stages/*.pkl 2>/dev/null || true
+fi
+if ls cache/*.pkl >/dev/null 2>&1; then
+  git add -f cache/*.pkl 2>/dev/null || true
+fi
+
+echo "─── Fichiers stagés pour push ───"
+git status --short | head -30
+echo "─────────────────────────────────"
+
 git commit -m "checkpoint ${STAGE} run${GITHUB_RUN_ID} att${NEW_COUNT} rc${RC} $(date +%s)" || echo "no changes"
 
 PUSH_OK=0
