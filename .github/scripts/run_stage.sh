@@ -93,8 +93,24 @@ if [ -d "${GITHUB_WORKSPACE}/cache" ]; then
 fi
 git add -A
 git commit -m "checkpoint ${STAGE} run${GITHUB_RUN_ID} att${NEW_COUNT} rc${RC} $(date +%s)" || echo "no changes"
-git push origin cache-auto --force || echo "push failed"
+
+PUSH_OK=0
+for push_attempt in 1 2 3; do
+  echo "  Push tentative ${push_attempt}/3..."
+  if git push origin cache-auto --force 2>&1; then
+    PUSH_OK=1
+    break
+  fi
+  sleep 5
+done
 cd "${GITHUB_WORKSPACE}"
+
+if [ "${PUSH_OK}" != "1" ]; then
+  echo "❌ PUSH cache-auto ÉCHOUÉ après 3 tentatives"
+  echo "::error::Impossible de persister l'état sur GitHub — ARRÊT DE LA CHAÎNE"
+  exit 5
+fi
+echo "✅ cache-auto pushé (stage=${STAGE})"
 
 if [ "${RC}" = "0" ]; then
   if [ "${IS_RETRY}" = "true" ]; then

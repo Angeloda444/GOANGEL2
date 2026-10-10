@@ -871,6 +871,7 @@ def get_season_matches(
     params = {
         "league_id": int(league_id),
         "season_id": int(season_id),
+        "date_from": "2000-01-01",
     }
     raw_matches = _paginate(url, params, per_page=per_page)
     if not only_finished:
@@ -908,7 +909,6 @@ def get_season_matches(
             len(finished),
         )
     return finished
-
 
 def get_matches_by_date(
     date_iso: str,
@@ -1057,14 +1057,11 @@ def _fetch_season_task(
                         league_id, season_id, len(matches), attempt + 1,
                     )
                 return (league_id, season_id, season_year, matches)
-            last_error = "empty_response"
-            logger.warning(
-                "Ligue %d saison %d : reponse vide (tentative %d/%d)",
-                league_id, season_id, attempt + 1, max_retries,
+            logger.info(
+                "Ligue %d saison %d : 0 matchs (saison terminee ou archive incomplete)",
+                league_id, season_id,
             )
-            if attempt < max_retries - 1:
-                time.sleep(1.5 * (attempt + 1))
-                continue
+            return (league_id, season_id, season_year, [])
         except Exception as exc:
             last_error = str(exc)
             logger.warning(
@@ -1075,7 +1072,7 @@ def _fetch_season_task(
                 time.sleep(1.5 * (attempt + 1))
                 continue
     logger.error(
-        "Ligue %d saison %d : echec definitif apres %d tentatives (%s)",
+        "Ligue %d saison %d : echec reseau definitif apres %d tentatives (%s)",
         league_id, season_id, max_retries, last_error,
     )
     return (league_id, season_id, season_year, [])
