@@ -116,6 +116,15 @@ from predict import (
     _atomic_write_pickle,
 )
 
+try:
+    from penaltyblog_method_patch import apply_patch as _pb_patch_apply
+    _pb_patch_apply()
+except Exception as _pb_patch_exc:
+    import logging as _plogging
+    _plogging.getLogger("goangel.main").warning(
+        "penaltyblog_method_patch échoué : %s", _pb_patch_exc
+    )
+
 from api import (
     CheckpointManager,
     get_historical_matches,
