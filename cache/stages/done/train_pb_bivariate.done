@@ -1,0 +1,8 @@
+{
+  "stage": "train_pb_bivariate",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/models/pb_BivariatePoissonGoalModel.pkl": "190c88fad3d8592281a3d335f47ed3f9ee0d8aa683e98d13e8324cea0e52f960"
+  },
+  "ts": "2026-10-10T12:58:46.377093",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

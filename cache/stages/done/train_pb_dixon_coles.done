@@ -1,0 +1,8 @@
+{
+  "stage": "train_pb_dixon_coles",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/models/pb_DixonColesGoalModel.pkl": "0ecad1d69d060ae1f1d999628115bbe561c852504fa29ff20b90ef793c50c6f8"
+  },
+  "ts": "2026-10-10T12:51:14.427572",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

@@ -1,0 +1,8 @@
+{
+  "stage": "train_pb_poisson",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/models/pb_PoissonGoalsModel.pkl": "69aa1030c4ab6628a6ea5742c8010d39813e149877e6cf0257efcbad3feec510"
+  },
+  "ts": "2026-10-10T12:46:39.478689",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

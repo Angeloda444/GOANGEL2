@@ -1,0 +1,8 @@
+{
+  "stage": "train_xgb",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/models/ml_XGB.pkl": "aa7ec68a2574dc66c635151df39ed27ae46dac6a21b1fe6eb07a43828c07fb23"
+  },
+  "ts": "2026-10-10T12:32:43.318923",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

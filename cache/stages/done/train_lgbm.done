@@ -1,0 +1,8 @@
+{
+  "stage": "train_lgbm",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/models/ml_LGBM.pkl": "54194ff5c53b4f6aaf9181d5f901406691e2b87379a1004584f804ac39a3dc8d"
+  },
+  "ts": "2026-10-10T12:34:13.385844",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

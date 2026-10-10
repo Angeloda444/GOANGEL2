@@ -1,0 +1,8 @@
+{
+  "stage": "train_pb_negbinomial",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/models/pb_NegativeBinomialGoalModel.pkl": "cb4d630f056e3e9d55d6a594e3bb33bc912ce28d24e90bd0676dcad8347e9efa"
+  },
+  "ts": "2026-10-10T13:04:01.581367",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

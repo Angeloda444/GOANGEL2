@@ -1,0 +1,10 @@
+{
+  "stage": "prepare",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/features.pkl": "02c10874fe0595337a427d3063182346ad7977dcc1079260dd28550d572d6558",
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/metadata.pkl": "c79692f1255f6f4343636ffbdb55b5279767902af90af2b1b993e22e748ce06b",
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/historical.pkl": "35dc2f15e02ed9c8687eb70c338ea0c165010eecf8556aca20d7c137e214409a"
+  },
+  "ts": "2026-10-10T12:30:59.046832",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

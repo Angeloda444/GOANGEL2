@@ -1,0 +1,8 @@
+{
+  "stage": "train_catboost",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/models/ml_CatBoost.pkl": "54a19c66e75912d51fb870919a082e631c91d0845674e458c805b1d75f902cb5"
+  },
+  "ts": "2026-10-10T12:35:46.862779",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

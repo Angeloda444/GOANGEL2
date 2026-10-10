@@ -1,0 +1,11 @@
+{
+  "stage": "finalize",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/historical.pkl": "35dc2f15e02ed9c8687eb70c338ea0c165010eecf8556aca20d7c137e214409a",
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/models.pkl": "e1284f1935b194beb947243b027255f4dc68d3fbcecb09450ae1cb6946bae685",
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/scaler.pkl": "5911d2d876f739fcccde6005fa3dbb39c11ee48043fa9841be2beb9669d0e0f4",
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/weights.pkl": "da79d4713fb38a6f432a95a27e96248497d43574ac3848aebb00f523c74df25f"
+  },
+  "ts": "2026-10-10T19:41:22.265770",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}

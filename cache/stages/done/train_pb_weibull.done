@@ -1,0 +1,8 @@
+{
+  "stage": "train_pb_weibull",
+  "files": {
+    "/home/runner/work/GOANGEL2/GOANGEL2/cache/stages/models/pb_WeibullCopulaGoalsModel.pkl": "6af5ebc1bf5d895b4d468ef4c104d8fef43377aded017222b2f2da0f101f960f"
+  },
+  "ts": "2026-10-10T15:56:40.308828",
+  "schema": "goangel-bzzoiro-2026.10-v2"
+}
