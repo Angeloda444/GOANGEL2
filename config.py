@@ -565,51 +565,51 @@ PROBABILITY_CLIP_EPS: float = 0.005
 DIXON_COLES_RHO: float = -0.05
 MAX_GOALS_GRID: int = 12
 
-XGB_N_ESTIMATORS: int = 300
-XGB_MAX_DEPTH: int = 5
-XGB_LEARNING_RATE: float = 0.05
-XGB_SUBSAMPLE: float = 0.80
-XGB_COLSAMPLE: float = 0.80
-XGB_MIN_CHILD_WEIGHT: float = 5.0
-XGB_REG_LAMBDA: float = 1.5
-XGB_REG_ALPHA: float = 0.5
+XGB_N_ESTIMATORS: int = 1500
+XGB_MAX_DEPTH: int = 7
+XGB_LEARNING_RATE: float = 0.03
+XGB_SUBSAMPLE: float = 0.85
+XGB_COLSAMPLE: float = 0.85
+XGB_MIN_CHILD_WEIGHT: float = 3.0
+XGB_REG_LAMBDA: float = 2.0
+XGB_REG_ALPHA: float = 1.0
 
-LGBM_N_ESTIMATORS: int = 300
+LGBM_N_ESTIMATORS: int = 2000
 LGBM_MAX_DEPTH: int = -1
-LGBM_LEARNING_RATE: float = 0.05
-LGBM_NUM_LEAVES: int = 31
-LGBM_MIN_CHILD_SAMPLES: int = 25
-LGBM_SUBSAMPLE: float = 0.80
-LGBM_COLSAMPLE: float = 0.80
-LGBM_REG_LAMBDA: float = 1.5
+LGBM_LEARNING_RATE: float = 0.03
+LGBM_NUM_LEAVES: int = 63
+LGBM_MIN_CHILD_SAMPLES: int = 15
+LGBM_SUBSAMPLE: float = 0.85
+LGBM_COLSAMPLE: float = 0.85
+LGBM_REG_LAMBDA: float = 2.0
 
-CATBOOST_ITERATIONS: int = 400
-CATBOOST_DEPTH: int = 5
-CATBOOST_LEARNING_RATE: float = 0.05
-CATBOOST_L2_LEAF_REG: float = 3.0
-CATBOOST_RANDOM_STRENGTH: float = 1.0
+CATBOOST_ITERATIONS: int = 2000
+CATBOOST_DEPTH: int = 8
+CATBOOST_LEARNING_RATE: float = 0.03
+CATBOOST_L2_LEAF_REG: float = 5.0
+CATBOOST_RANDOM_STRENGTH: float = 1.5
 
-RF_N_ESTIMATORS: int = 200
-RF_MAX_DEPTH: int = 10
-RF_MIN_SAMPLES_LEAF: int = 5
-RF_MIN_SAMPLES_SPLIT: int = 10
+RF_N_ESTIMATORS: int = 500
+RF_MAX_DEPTH: int = 20
+RF_MIN_SAMPLES_LEAF: int = 2
+RF_MIN_SAMPLES_SPLIT: int = 5
 RF_MAX_FEATURES: str = "sqrt"
 RF_MAX_FEATURES_RESOLVED: Optional[str] = "sqrt"
 
 DL_ENABLED: bool = True
-DL_HIDDEN_SIZE: int = 96
-DL_EPOCHS: int = 100
-DL_BATCH_SIZE: int = 32
-DL_LEARNING_RATE: float = 3e-4
-DL_WEIGHT_DECAY: float = 1e-4
-DL_DROPOUT: float = 0.20
-DL_EARLY_STOPPING_PATIENCE: int = 15
+DL_HIDDEN_SIZE: int = 256
+DL_EPOCHS: int = 200
+DL_BATCH_SIZE: int = 64
+DL_LEARNING_RATE: float = 0.0002
+DL_WEIGHT_DECAY: float = 0.0005
+DL_DROPOUT: float = 0.25
+DL_EARLY_STOPPING_PATIENCE: int = 20
 DL_GRAD_CLIP: float = 0.5
 
 BAYESIAN_ENABLED: bool = True
-BAYESIAN_N_SAMPLES: int = 300  # noqa
-BAYESIAN_BURN: int = 150
-BAYESIAN_N_CHAINS: int = 1
+BAYESIAN_N_SAMPLES: int = 1000
+BAYESIAN_BURN: int = 500
+BAYESIAN_N_CHAINS: int = 2
 BAYESIAN_THIN: int = 1
 BAYESIAN_MODELS: Tuple[str, ...] = (
     "BayesianGoalModel",
@@ -1438,4 +1438,230 @@ logger.info(
     len(MODEL_HYPERPARAMS),
     CHECKPOINT_DIR,
     CONFIG_FINGERPRINT[:12],
+)
+
+PB_MAX_ATTEMPTS: int = _resolve_int("GOANGEL_PB_MAX_ATTEMPTS", 15, 1, 100)
+PB_MAX_GOALS_FILTER: int = _resolve_int("GOANGEL_PB_MAX_GOALS_FILTER", 8, 1, 30)
+PB_HALF_LIFE_DEFAULT: float = _resolve_float("GOANGEL_PB_HALF_LIFE_DEFAULT", 180.0, 7.0, 3650.0)
+PB_HALF_LIFE_SOFT: float = _resolve_float("GOANGEL_PB_HALF_LIFE_SOFT", 365.0, 7.0, 3650.0)
+PB_MIN_MATCHES_HARD_FLOOR: int = _resolve_int("GOANGEL_PB_MIN_MATCHES_HARD_FLOOR", 100, 10, 100000)
+
+PB_BAYESIAN_N_SAMPLES: int = _resolve_int("GOANGEL_PB_BAYESIAN_N_SAMPLES", 1200, 100, 100000)
+PB_BAYESIAN_BURN: int = _resolve_int("GOANGEL_PB_BAYESIAN_BURN", 600, 50, 50000)
+PB_BAYESIAN_N_CHAINS: int = _resolve_int("GOANGEL_PB_BAYESIAN_N_CHAINS", 1, 1, 16)
+PB_BAYESIAN_THIN: int = _resolve_int("GOANGEL_PB_BAYESIAN_THIN", 1, 1, 100)
+PB_BAYESIAN_N_CORES: int = _resolve_int("GOANGEL_PB_BAYESIAN_N_CORES", 1, 1, 128)
+
+PB_TRUST_CONSTR_MAX_ITER: int = _resolve_int("GOANGEL_PB_TRUST_CONSTR_MAX_ITER", 5000, 100, 1000000)
+PB_TRUST_CONSTR_GTOL: float = _resolve_float("GOANGEL_PB_TRUST_CONSTR_GTOL", 1e-6, 1e-12, 1.0)
+PB_TRUST_CONSTR_XTOL: float = _resolve_float("GOANGEL_PB_TRUST_CONSTR_XTOL", 1e-8, 1e-12, 1.0)
+
+PB_SLSQP_MAX_ITER: int = _resolve_int("GOANGEL_PB_SLSQP_MAX_ITER", 5000, 100, 1000000)
+PB_SLSQP_FTOL: float = _resolve_float("GOANGEL_PB_SLSQP_FTOL", 1e-6, 1e-12, 1.0)
+
+PB_WEIGHT_MIN: float = _resolve_float("GOANGEL_PB_WEIGHT_MIN", 1e-8, 1e-15, 1.0)
+PB_WEIGHT_MAX: float = _resolve_float("GOANGEL_PB_WEIGHT_MAX", 1e6, 1.0, 1e12)
+
+PB_HISTORY_MAX_ENTRIES: int = _resolve_int("GOANGEL_PB_HISTORY_MAX_ENTRIES", 50, 1, 1000)
+PB_CHECKPOINTS_KEPT: int = _resolve_int("GOANGEL_PB_CHECKPOINTS_KEPT", 3, 1, 50)
+
+PB_FALLBACK_CHAIN: Tuple[Tuple[str, Dict[str, Any]], ...] = (
+    (
+        "trust-constr",
+        {
+            "maxiter": PB_TRUST_CONSTR_MAX_ITER,
+            "gtol": PB_TRUST_CONSTR_GTOL,
+            "xtol": PB_TRUST_CONSTR_XTOL,
+            "barrier_tol": 1e-8,
+            "initial_tr_radius": 1.0,
+            "verbose": 0,
+        },
+    ),
+    (
+        "Powell",
+        {
+            "maxiter": PB_TRUST_CONSTR_MAX_ITER,
+            "xtol": PB_TRUST_CONSTR_XTOL,
+            "ftol": PB_TRUST_CONSTR_GTOL,
+        },
+    ),
+    (
+        "L-BFGS-B",
+        {
+            "maxiter": PB_TRUST_CONSTR_MAX_ITER,
+            "ftol": PB_TRUST_CONSTR_XTOL,
+            "gtol": PB_TRUST_CONSTR_GTOL,
+            "maxls": 50,
+        },
+    ),
+)
+
+PB_FILTER_PLAN: Dict[int, Dict[str, Any]] = {
+    1:  {"min_matches": 0,  "max_goals": 100,                   "half_life": PB_HALF_LIFE_DEFAULT},
+    2:  {"min_matches": 0,  "max_goals": PB_MAX_GOALS_FILTER,   "half_life": PB_HALF_LIFE_DEFAULT},
+    3:  {"min_matches": 4,  "max_goals": PB_MAX_GOALS_FILTER,   "half_life": PB_HALF_LIFE_SOFT},
+    4:  {"min_matches": 6,  "max_goals": PB_MAX_GOALS_FILTER,   "half_life": PB_HALF_LIFE_SOFT},
+    5:  {"min_matches": 8,  "max_goals": PB_MAX_GOALS_FILTER,   "half_life": PB_HALF_LIFE_SOFT},
+    6:  {"min_matches": 10, "max_goals": PB_MAX_GOALS_FILTER,   "half_life": PB_HALF_LIFE_SOFT},
+    7:  {"min_matches": 12, "max_goals": PB_MAX_GOALS_FILTER,   "half_life": PB_HALF_LIFE_SOFT},
+    8:  {"min_matches": 15, "max_goals": PB_MAX_GOALS_FILTER,   "half_life": PB_HALF_LIFE_SOFT},
+    15: {"min_matches": 20, "max_goals": PB_MAX_GOALS_FILTER,   "half_life": PB_HALF_LIFE_SOFT},
+}
+
+
+def _validate_pb_parameters() -> List[str]:
+    errors: List[str] = []
+    if PB_MAX_ATTEMPTS < 1 or PB_MAX_ATTEMPTS > 100:
+        errors.append(f"PB_MAX_ATTEMPTS hors bornes (reçu {PB_MAX_ATTEMPTS})")
+    if PB_MAX_GOALS_FILTER < 1 or PB_MAX_GOALS_FILTER > 30:
+        errors.append(f"PB_MAX_GOALS_FILTER hors bornes (reçu {PB_MAX_GOALS_FILTER})")
+    if PB_HALF_LIFE_DEFAULT <= 0 or PB_HALF_LIFE_DEFAULT > 3650:
+        errors.append(f"PB_HALF_LIFE_DEFAULT hors bornes (reçu {PB_HALF_LIFE_DEFAULT})")
+    if PB_HALF_LIFE_SOFT <= 0 or PB_HALF_LIFE_SOFT > 3650:
+        errors.append(f"PB_HALF_LIFE_SOFT hors bornes (reçu {PB_HALF_LIFE_SOFT})")
+    if PB_HALF_LIFE_SOFT < PB_HALF_LIFE_DEFAULT:
+        errors.append("PB_HALF_LIFE_SOFT doit être >= PB_HALF_LIFE_DEFAULT")
+    if PB_MIN_MATCHES_HARD_FLOOR < 10 or PB_MIN_MATCHES_HARD_FLOOR > 100000:
+        errors.append(f"PB_MIN_MATCHES_HARD_FLOOR hors bornes (reçu {PB_MIN_MATCHES_HARD_FLOOR})")
+    if PB_BAYESIAN_N_SAMPLES < 100 or PB_BAYESIAN_N_SAMPLES > 100000:
+        errors.append(f"PB_BAYESIAN_N_SAMPLES hors bornes (reçu {PB_BAYESIAN_N_SAMPLES})")
+    if PB_BAYESIAN_BURN < 50 or PB_BAYESIAN_BURN > 50000:
+        errors.append(f"PB_BAYESIAN_BURN hors bornes (reçu {PB_BAYESIAN_BURN})")
+    if PB_BAYESIAN_BURN >= PB_BAYESIAN_N_SAMPLES:
+        errors.append("PB_BAYESIAN_BURN doit être < PB_BAYESIAN_N_SAMPLES")
+    if PB_BAYESIAN_N_CHAINS < 1 or PB_BAYESIAN_N_CHAINS > 16:
+        errors.append(f"PB_BAYESIAN_N_CHAINS hors bornes (reçu {PB_BAYESIAN_N_CHAINS})")
+    if PB_BAYESIAN_THIN < 1 or PB_BAYESIAN_THIN > 100:
+        errors.append(f"PB_BAYESIAN_THIN hors bornes (reçu {PB_BAYESIAN_THIN})")
+    if PB_BAYESIAN_N_CORES < 1 or PB_BAYESIAN_N_CORES > 128:
+        errors.append(f"PB_BAYESIAN_N_CORES hors bornes (reçu {PB_BAYESIAN_N_CORES})")
+    if PB_TRUST_CONSTR_MAX_ITER < 100:
+        errors.append("PB_TRUST_CONSTR_MAX_ITER doit être >= 100")
+    if PB_TRUST_CONSTR_GTOL <= 0 or PB_TRUST_CONSTR_GTOL > 1.0:
+        errors.append(f"PB_TRUST_CONSTR_GTOL hors bornes (reçu {PB_TRUST_CONSTR_GTOL})")
+    if PB_TRUST_CONSTR_XTOL <= 0 or PB_TRUST_CONSTR_XTOL > 1.0:
+        errors.append(f"PB_TRUST_CONSTR_XTOL hors bornes (reçu {PB_TRUST_CONSTR_XTOL})")
+    if PB_SLSQP_MAX_ITER < 100:
+        errors.append("PB_SLSQP_MAX_ITER doit être >= 100")
+    if PB_SLSQP_FTOL <= 0 or PB_SLSQP_FTOL > 1.0:
+        errors.append(f"PB_SLSQP_FTOL hors bornes (reçu {PB_SLSQP_FTOL})")
+    if PB_WEIGHT_MIN <= 0:
+        errors.append("PB_WEIGHT_MIN doit être > 0")
+    if PB_WEIGHT_MAX <= PB_WEIGHT_MIN:
+        errors.append("PB_WEIGHT_MAX doit être > PB_WEIGHT_MIN")
+    if PB_HISTORY_MAX_ENTRIES < 1 or PB_HISTORY_MAX_ENTRIES > 1000:
+        errors.append(f"PB_HISTORY_MAX_ENTRIES hors bornes (reçu {PB_HISTORY_MAX_ENTRIES})")
+    if PB_CHECKPOINTS_KEPT < 1 or PB_CHECKPOINTS_KEPT > 50:
+        errors.append(f"PB_CHECKPOINTS_KEPT hors bornes (reçu {PB_CHECKPOINTS_KEPT})")
+    if not isinstance(PB_FALLBACK_CHAIN, tuple) or len(PB_FALLBACK_CHAIN) == 0:
+        errors.append("PB_FALLBACK_CHAIN doit être un tuple non vide")
+    else:
+        for _entry in PB_FALLBACK_CHAIN:
+            if not isinstance(_entry, tuple) or len(_entry) != 2:
+                errors.append("PB_FALLBACK_CHAIN : chaque entrée doit être (method, options)")
+                break
+            _m, _o = _entry
+            if not isinstance(_m, str) or not _m:
+                errors.append("PB_FALLBACK_CHAIN : méthode invalide")
+                break
+            if not isinstance(_o, dict):
+                errors.append("PB_FALLBACK_CHAIN : options invalides")
+                break
+    if not isinstance(PB_FILTER_PLAN, dict) or len(PB_FILTER_PLAN) == 0:
+        errors.append("PB_FILTER_PLAN doit être un dict non vide")
+    else:
+        for _k, _v in PB_FILTER_PLAN.items():
+            if not isinstance(_k, int) or _k < 1 or _k > PB_MAX_ATTEMPTS:
+                errors.append(f"PB_FILTER_PLAN : clé invalide {_k}")
+                break
+            if not isinstance(_v, dict):
+                errors.append(f"PB_FILTER_PLAN[{_k}] doit être un dict")
+                break
+            for _field in ("min_matches", "max_goals", "half_life"):
+                if _field not in _v:
+                    errors.append(f"PB_FILTER_PLAN[{_k}] : champ {_field} manquant")
+                    break
+    return errors
+
+
+_PB_PATCH_ERRORS: List[str] = _validate_pb_parameters()
+if _PB_PATCH_ERRORS:
+    for _err_pb in _PB_PATCH_ERRORS:
+        logger.critical("Configuration PB invalide : %s", _err_pb)
+    raise ConfigValidationError(
+        "Configuration PB invalide : " + " | ".join(_PB_PATCH_ERRORS)
+    )
+
+
+def get_pb_runtime_config() -> Dict[str, Any]:
+    return {
+        "max_attempts": int(PB_MAX_ATTEMPTS),
+        "max_goals_filter": int(PB_MAX_GOALS_FILTER),
+        "half_life_default": float(PB_HALF_LIFE_DEFAULT),
+        "half_life_soft": float(PB_HALF_LIFE_SOFT),
+        "min_matches_hard_floor": int(PB_MIN_MATCHES_HARD_FLOOR),
+        "bayesian": {
+            "n_samples": int(PB_BAYESIAN_N_SAMPLES),
+            "burn": int(PB_BAYESIAN_BURN),
+            "n_chains": int(PB_BAYESIAN_N_CHAINS),
+            "thin": int(PB_BAYESIAN_THIN),
+            "n_cores": int(PB_BAYESIAN_N_CORES),
+        },
+        "trust_constr": {
+            "max_iter": int(PB_TRUST_CONSTR_MAX_ITER),
+            "gtol": float(PB_TRUST_CONSTR_GTOL),
+            "xtol": float(PB_TRUST_CONSTR_XTOL),
+        },
+        "slsqp": {
+            "max_iter": int(PB_SLSQP_MAX_ITER),
+            "ftol": float(PB_SLSQP_FTOL),
+        },
+        "weights": {
+            "min": float(PB_WEIGHT_MIN),
+            "max": float(PB_WEIGHT_MAX),
+        },
+        "history_max_entries": int(PB_HISTORY_MAX_ENTRIES),
+        "checkpoints_kept": int(PB_CHECKPOINTS_KEPT),
+        "fallback_chain": [m for m, _ in PB_FALLBACK_CHAIN],
+    }
+
+
+def get_pb_filter_for_attempt(attempt: int) -> Dict[str, Any]:
+    try:
+        a = int(attempt)
+    except (TypeError, ValueError):
+        a = 1
+    if a < 1:
+        a = 1
+    if a in PB_FILTER_PLAN:
+        spec = PB_FILTER_PLAN[a]
+        return {
+            "min_matches": int(spec["min_matches"]),
+            "max_goals": int(spec["max_goals"]),
+            "half_life": float(spec["half_life"]),
+        }
+    last_key = max(PB_FILTER_PLAN.keys())
+    spec = PB_FILTER_PLAN[last_key]
+    return {
+        "min_matches": int(spec["min_matches"]),
+        "max_goals": int(spec["max_goals"]),
+        "half_life": float(spec["half_life"]),
+    }
+
+
+logger.info(
+    "PB convergence patch activé : max_attempts=%d, half_life=%.0f→%.0f, "
+    "bayesian=(n=%d, burn=%d, chains=%d, thin=%d, cores=%d), "
+    "filtre max_goals=%d, floor=%d, fallback=%s",
+    PB_MAX_ATTEMPTS,
+    PB_HALF_LIFE_DEFAULT,
+    PB_HALF_LIFE_SOFT,
+    PB_BAYESIAN_N_SAMPLES,
+    PB_BAYESIAN_BURN,
+    PB_BAYESIAN_N_CHAINS,
+    PB_BAYESIAN_THIN,
+    PB_BAYESIAN_N_CORES,
+    PB_MAX_GOALS_FILTER,
+    PB_MIN_MATCHES_HARD_FLOOR,
+    [m for m, _ in PB_FALLBACK_CHAIN],
 )

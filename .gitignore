@@ -3,37 +3,25 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Autres dossiers ignorés (checkpoints, cache Python)
 checkpoints/
 .cache/
-
-# Fichiers ML temporaires À LA RACINE UNIQUEMENT (pas dans cache/)
 /*.pkl
-/*.pkl.xz
 /*.log
 /*.tmp
-
-# Backups (partout)
 *.bak
 *.bak_*
 .env.bak
 .env.bak_*
-
-# Logs dans cache (le reste de cache/ est versionné)
-cache/*.log
-cache/**/*.log
-
+cache/
 .DS_Store
 Thumbs.db
-
 .venv/
 venv/
 env/
 .idea/
 .vscode/
-
-.lfsconfig
-.gitattributes
 .env
-cache/checkpoints/raw_matches.jsonl
+*.egg-info/
+build/
+dist/
+*.json.tmp

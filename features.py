@@ -6,6 +6,7 @@ import os
 import random
 from collections import Counter
 from datetime import date
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -2807,79 +2808,57 @@ def _fit_pb_model(
     ga: List[int],
     th: List[str],
     ta: List[str],
+    weights: Optional[np.ndarray] = None,
 ) -> Tuple[str, Any]:
     cls = _PB_MODEL_CLASSES.get(class_name)
     if cls is None:
         return "error", f"Modèle penaltyblog inconnu : {class_name}"
 
+    def _new_model():
+        if weights is not None:
+            try:
+                return cls(gh, ga, th, ta, weights=weights)
+            except TypeError:
+                pass
+            except Exception as exc:
+                logger.debug(
+                    "Poids rejetés pour %s : %s", class_name, exc,
+                )
+        return cls(gh, ga, th, ta)
+
     if class_name in _PB_BAYESIAN_MODELS:
         try:
-            m = cls(gh, ga, th, ta)
-            m.fit(
-                n_samples=BAYESIAN_N_SAMPLES,
-                burn=BAYESIAN_BURN,
-                n_chains=BAYESIAN_N_CHAINS,
-                thin=BAYESIAN_THIN,
-            )
-            logger.info("%s : Bayesian OK", class_name)
+            m = _new_model()
+            fit_kwargs: Dict[str, Any] = {
+                "n_samples": BAYESIAN_N_SAMPLES,
+                "burn": BAYESIAN_BURN,
+                "n_chains": BAYESIAN_N_CHAINS,
+                "thin": BAYESIAN_THIN,
+            }
+            try:
+                import inspect as _inspect
+                sig = _inspect.signature(m.fit)
+                if "n_cores" in sig.parameters:
+                    fit_kwargs["n_cores"] = 1
+            except Exception:
+                pass
+            m.fit(**fit_kwargs)
             return "ok", m
         except Exception as exc:
-            return "error", f"Bayesian {class_name} : {exc}"
-
-    from collections import Counter
-    filter_levels: Tuple[int, ...] = (5, 10, 15, 20, 30)
-    opt_strategies: Tuple[str, ...] = ("SLSQP", "trust-constr")
-    last_errors: List[str] = []
-
-    for min_matches in filter_levels:
-        team_counts = Counter(list(th) + list(ta))
-        valid_teams = {t for t, c in team_counts.items() if c >= min_matches}
-
-        filtered: List[Tuple[str, str, int, int]] = []
-        for h, a, g_h, g_a in zip(th, ta, gh, ga):
-            if h not in valid_teams or a not in valid_teams:
-                continue
-            if g_h < 0 or g_h > 7 or g_a < 0 or g_a > 7:
-                continue
-            filtered.append((h, a, int(g_h), int(g_a)))
-
-        if len(filtered) < 100:
-            logger.warning(
-                "%s : min_matches=%d → seulement %d matchs, on saute",
-                class_name, min_matches, len(filtered),
+            return (
+                "error",
+                f"Bayesian {class_name} : {type(exc).__name__}: {exc}",
             )
-            continue
 
-        h_f = [r[0] for r in filtered]
-        a_f = [r[1] for r in filtered]
-        g_h_f = [r[2] for r in filtered]
-        g_a_f = [r[3] for r in filtered]
-
-        logger.info(
-            "%s : min_matches=%d → %d matchs, %d équipes",
-            class_name, min_matches, len(filtered), len(valid_teams),
+    try:
+        m = _new_model()
+        m.fit(minimizer_options={"maxiter": 5000})
+        return "ok", m
+    except Exception as exc:
+        return (
+            "error",
+            f"{class_name} : {type(exc).__name__}: {exc}",
         )
-
-        for method in opt_strategies:
-            try:
-                m = cls(g_h_f, g_a_f, h_f, a_f)
-                m.fit(minimizer_options={
-                    "method": method,
-                    "options": {"maxiter": 5000},
-                })
-                logger.info(
-                    "%s : OK avec min_matches=%d + %s (%d matchs, %d équipes)",
-                    class_name, min_matches, method, len(filtered), len(valid_teams),
-                )
-                return "ok", m
-            except Exception as exc:
-                err = f"min_matches={min_matches} {method} : {type(exc).__name__} : {exc}"
-                last_errors.append(err)
-                logger.warning("%s : %s échoué → %s", class_name, method, exc)
-                continue
-
-    summary = " | ".join(last_errors[-6:])
-    return "error", f"Echec après {len(filter_levels)} filtres : {summary}"
 
 
 def _calibrate_or_keep(
@@ -3239,21 +3218,56 @@ def _evaluate_pb_model_walk_forward(
     th: List[str],
     ta: List[str],
     n_folds: int,
+    checkpoint_dir: Optional[Path] = None,
 ) -> Tuple[float, int, int]:
+    """Walk-forward PB AVEC checkpoint fold-par-fold.
+    Si checkpoint_dir fourni : sauvegarde chaque fold, reprend au premier manquant."""
+    import pickle as _pk
+    from pathlib import Path as _P
+
     n_samples = len(gh)
     if n_samples < max(200, _PB_WF_MIN_TRAIN_SAMPLES) or n_folds < 2:
         return float("inf"), 0, 0
+
     splits = _walk_forward_splits(n_samples, n_folds)
     log_losses: List[float] = []
     evaluated = 0
     attempted = 0
 
-    for train_end, val_end in splits:
+    # ─── Charger checkpoints existants ───
+    done_folds = {}
+    if checkpoint_dir is not None:
+        try:
+            cd = _P(checkpoint_dir)
+            cd.mkdir(parents=True, exist_ok=True)
+            for fp in sorted(cd.glob("fold_*.pkl")):
+                try:
+                    with open(fp, "rb") as f:
+                        payload = _pk.load(f)
+                    idx = int(fp.stem.split("_")[1])
+                    done_folds[idx] = payload
+                    logger.info("📦 %s fold %d chargé depuis checkpoint", class_name, idx)
+                except Exception as exc:
+                    logger.warning("Checkpoint fold %s illisible : %s", fp, exc)
+        except Exception as exc:
+            logger.warning("Init checkpoint_dir échouée : %s", exc)
+
+    for i, (train_end, val_end) in enumerate(splits):
         attempted += 1
+
+        # Reprise depuis checkpoint
+        if i in done_folds:
+            ll_saved = done_folds[i].get("ll")
+            if ll_saved is not None and np.isfinite(ll_saved):
+                log_losses.append(float(ll_saved))
+                evaluated += 1
+                continue
+
         if train_end < _PB_WF_MIN_TRAIN_SAMPLES:
             continue
         if (val_end - train_end) < _PB_WF_MIN_VAL_SAMPLES:
             continue
+
         try:
             gh_tr = gh[:train_end]
             ga_tr = ga[:train_end]
@@ -3312,13 +3326,24 @@ def _evaluate_pb_model_walk_forward(
             ll = log_loss(y_arr, probas_arr, labels=[0, 1, 2])
             log_losses.append(float(ll))
             evaluated += 1
+
+            # ─── Sauvegarder le fold ───
+            if checkpoint_dir is not None:
+                try:
+                    fp = _P(checkpoint_dir) / f"fold_{i:02d}.pkl"
+                    with open(fp, "wb") as f:
+                        _pk.dump({"ll": float(ll), "fold": i, "n_val": len(probas)}, f)
+                except Exception as exc:
+                    logger.warning("Sauvegarde fold %d échouée : %s", i, exc)
+
         except Exception as exc:
-            logger.debug("PB walk-forward fold échoué : %s", exc)
+            logger.debug("PB walk-forward fold %d échoué : %s", i, exc)
             continue
 
     if not log_losses:
         return float("inf"), evaluated, attempted
     return float(np.mean(log_losses)), evaluated, attempted
+
 
 
 def _make_xgb_factory() -> Callable[[], Any]:
